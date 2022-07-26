@@ -38,7 +38,7 @@ app.use("/api/account", userRouter);
 
 // listen
 // app.listen(port, () => console.log(`Listening on local host ${port}`));
-server.listen(port, () => console.log(`Listening on local host ${port}`));
+app.listen(port, () => console.log(`Listening on local host ${port}`));
 
 //chat
 const wss = new WebSocketServer({ server });
