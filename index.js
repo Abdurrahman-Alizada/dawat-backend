@@ -48,7 +48,7 @@ wss.on("connection", function connection(ws) {
     console.log(message.toString(), isBinary);
 
     wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocket.OPEN) {
+      if (client.readyState === WebSocketServer.OPEN) {
         client.send(message.toString());
       }
     });
