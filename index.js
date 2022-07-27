@@ -6,7 +6,8 @@ import userRouter from "./router/userRouter.js";
 import { Server } from 'socket.io';
 import http from 'http'
 import path, { dirname } from 'path';
-import {WebSocketServer } from 'ws';
+// import {WebSocketServer } from 'ws';
+import WebSocket, {WebSocketServer} from 'ws';
 
 dotenv.config();
 
@@ -46,10 +47,10 @@ const wss = new WebSocketServer({ server });
 
 wss.on("connection", function connection(ws) {
   ws.on("message", function incoming(message, isBinary) {
-    console.log(message.toString(), isBinary);
+    console.log("connected", message.toString(), isBinary);
 
     wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocketServer.OPEN) {
+      if (client.readyState === WebSocket.OPEN) {
         client.send(message.toString());
       }
     });
