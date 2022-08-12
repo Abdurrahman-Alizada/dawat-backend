@@ -6,7 +6,6 @@ import userRouter from "./router/userRouter.js";
 import { Server } from 'socket.io';
 import http from 'http'
 import path, { dirname } from 'path';
-// import {WebSocketServer } from 'ws';
 import WebSocket, {WebSocketServer} from 'ws';
 
 dotenv.config();
@@ -39,15 +38,15 @@ app.use("/api/account", userRouter);
 
 // listen
 // app.listen(port, () => console.log(`Listening on local host ${port}`));
-app.listen(port, () => console.log(`Listening on local host ${port}`));
+server.listen(port, () => console.log(`Listening on local host ${port}`));
 
 //chat
-const wss = new WebSocketServer({ server });
 
+const wss = new WebSocketServer({ noServer: true });
 
 wss.on("connection", function connection(ws) {
   ws.on("message", function incoming(message, isBinary) {
-    console.log("connected", message.toString(), isBinary);
+    console.log(message.toString(), isBinary);
 
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
@@ -55,4 +54,8 @@ wss.on("connection", function connection(ws) {
       }
     });
   });
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
 });
