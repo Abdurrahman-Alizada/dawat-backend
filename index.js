@@ -42,7 +42,7 @@ server.listen(port, () => console.log(`Listening on local host ${port}`));
 
 //chat
 
-const wss = new WebSocketServer({ noServer: true });
+const wss = new WebSocketServer({server});
 
 wss.on("connection", function connection(ws) {
   ws.on("message", function incoming(message, isBinary) {
