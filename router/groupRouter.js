@@ -22,7 +22,7 @@ groupRouter.post("/addNewGroup/:id", async (req, res) => {
 
   return res.send({
     _id: createdPost._id,
-    groupName: createdPost.groupName,
+    itemName: createdPost.groupName,
     totalMembers: createdPost.totalMembers,
   });
 });
