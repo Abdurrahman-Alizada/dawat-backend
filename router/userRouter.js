@@ -38,21 +38,28 @@ userRouter.get("/my-account", async (req, res) => {
 
 
 userRouter.post("/register", async (req, res) => {
-  const user = new User({
-    name: req.body.name,
+ try{
+
+   const user = new User({
+     name: req.body.name,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 8),
   });
-
-  console.log(user);
+  
   const createdUser = await user.save();
-  res.send({
-    _id: createdUser._id,
-    name: createdUser.name,
-    email: createdUser.email,
-    isAdmin: createdUser.isAdmin,
-    token: generateToken(createdUser),
-  });
-});
+  // console.log(user);
+  return res.send({
+      _id: createdUser._id,
+      username: createdUser.username,
+      email: createdUser.email,
+      isAdmin: createdUser.isAdmin,
+      token: generateToken(createdUser),
+    });
+    
+  }catch(errors){
+    return res.status(200).send({ errors })
+  }
+}
+);
 
 export default userRouter;

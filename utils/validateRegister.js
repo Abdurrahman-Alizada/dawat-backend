@@ -1,7 +1,7 @@
-const validateRegisterInput = (username, email, password, confirmPassword) => {
+const validateRegister = (name, email, password, confirmPassword) => {
   const errors = {};
-  if (username.trim() === "") {
-    errors.username = "Username must not be empty";
+  if (name.trim() === "") {
+    errors.name = "Username must not be empty";
   }
   if (email.trim() === "") {
     errors.email = "Email must not be empty";
@@ -22,9 +22,8 @@ const validateRegisterInput = (username, email, password, confirmPassword) => {
 
   return {
     errors,
-
     valid: Object.keys(errors).length < 1,
   };
 };
 
-export default validateRegisterInput;
+export default validateRegister;

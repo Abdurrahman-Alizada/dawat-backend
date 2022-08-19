@@ -2,11 +2,10 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import userRouter from "./router/userRouter.js";
-import { Server } from 'socket.io';
 import http from 'http'
-import path, { dirname } from 'path';
 import WebSocket, {WebSocketServer} from 'ws';
+import userRouter from "./router/userRouter.js";
+import groupRouter from './router/groupRouter.js';
 
 dotenv.config();
 
@@ -17,7 +16,9 @@ const server = http.createServer(app)
 const port = process.env.PORT || 8000;
 
 // db config
-mongoose.connect(process.env.MONGO_URL);
+mongoose.connect(process.env.MONGO_URL, {
+  autoIndex: true, //this is the code I added that solved it all
+});
 
 // for checking that database is connected or not
 mongoose.connection.once("open", () => {
@@ -35,18 +36,18 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/account", userRouter);
+app.use("/api/group", groupRouter);
 
 // listen
 // app.listen(port, () => console.log(`Listening on local host ${port}`));
 server.listen(port, () => console.log(`Listening on local host ${port}`));
 
 //chat
-
 const wss = new WebSocketServer({server});
 
 wss.on("connection", function connection(ws) {
   ws.on("message", function incoming(message, isBinary) {
-    console.log(message.toString(), isBinary);
+    console.log("the message is....",message.toString(), isBinary);
 
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
@@ -57,5 +58,5 @@ wss.on("connection", function connection(ws) {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello World! from dawat-backend");
 });
