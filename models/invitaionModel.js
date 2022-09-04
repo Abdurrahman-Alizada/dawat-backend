@@ -2,10 +2,9 @@ import mongoose from "mongoose";
 
 const invitationSchema = mongoose.Schema(
   {
-    invitationName: { type: String, required: true },
-    invitationSubtitle: { type: String, required: true },
-    invitationCode : {type:String, required:true},
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "user" },  
+    invitiName: { type: String, required: true },
+    invitiDescription: { type: String, required: true },
+    addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },  
     group: { type: mongoose.Schema.Types.ObjectId, ref: "group" }
 },
   {

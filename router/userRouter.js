@@ -2,11 +2,11 @@ import express from "express";
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
-import { isAuth } from "../middleware/check-auth.js";
+import protect from '../middleware/authMiddleware.js';
 
 const userRouter = express.Router();
 
-userRouter.post("/login", async (req, res) => {
+userRouter.route("/login").post(protect, async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
 
   if (user) {
@@ -26,18 +26,17 @@ userRouter.post("/login", async (req, res) => {
   res.status(401).send({ message: "Invalid email or password" });
 });
 
-userRouter.get("/auth", async (req, res) => {
-  // const user = await User.findOne({ email: req.body.email });
+userRouter.route("/auth").get(protect, async (req, res) => {
   res.send({ message: "Welcome Bro" });
 });
 
-userRouter.get("/my-account", async (req, res) => {
+userRouter.route("/my-account").get(protect, async (req, res) => {
   const user = {name:"hello", email : 'hello@123',};
   res.send({ message: "Welcome Bro", user });
 });
 
 
-userRouter.post("/register", async (req, res) => {
+userRouter.route("/register").post(protect, async (req, res) => {
  try{
 
    const user = new User({

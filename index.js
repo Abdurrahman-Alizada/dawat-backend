@@ -6,7 +6,9 @@ import http from 'http'
 import WebSocket, {WebSocketServer} from 'ws';
 import userRouter from "./router/userRouter.js";
 import groupRouter from './router/groupRouter.js';
+import messageRoutes from './router/messageRoutes.js';
 import invitationRouter from './router/invitationRouter.js';
+import taskRouter from './router/taskRouter.js';
 
 dotenv.config();
 
@@ -38,7 +40,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/account", userRouter);
 app.use("/api/group", groupRouter);
+app.use("/api/group/message", messageRoutes);
 app.use("/api/group/invitations", invitationRouter);
+app.use("/api/group/tasks", taskRouter);
 // listen
 // app.listen(port, () => console.log(`Listening on local host ${port}`));
 server.listen(port, () => console.log(`Listening on local host ${port}`));
