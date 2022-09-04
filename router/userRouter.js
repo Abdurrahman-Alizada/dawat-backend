@@ -6,7 +6,7 @@ import protect from '../middleware/authMiddleware.js';
 
 const userRouter = express.Router();
 
-userRouter.route("/login").post(protect, async (req, res) => {
+userRouter.post("/login", async (req, res) => {
   const user = await User.findOne({ email: req.body.email });
 
   if (user) {
@@ -36,7 +36,7 @@ userRouter.route("/my-account").get(protect, async (req, res) => {
 });
 
 
-userRouter.route("/register").post(protect, async (req, res) => {
+userRouter.post("/register", async (req, res) => {
  try{
 
    const user = new User({
