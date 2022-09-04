@@ -5,7 +5,7 @@ import User from "../models/userModel.js";
 //@description     Create or fetch One to One Chat
 //@route           POST /api/chat/
 //@access          Protected
-const accessChat = asyncHandler(async (req, res) => {
+const accessGroup = asyncHandler(async (req, res) => {
   const { userId } = req.body;
 
   if (!userId) {
@@ -32,7 +32,7 @@ const accessChat = asyncHandler(async (req, res) => {
     res.send(isChat);
   } else {
     var chatData = {
-      chatName: "sender",
+      groupName: "sender",
       isGroupChat: false,
       users: [req.user._id, userId],
     };
@@ -54,7 +54,7 @@ const accessChat = asyncHandler(async (req, res) => {
 //@description     Fetch all chats for a user
 //@route           GET /api/chat/
 //@access          Protected
-const fetchChats = asyncHandler(async (req, res) => {
+const fetchGroups = asyncHandler(async (req, res) => {
   try {
     Chat.find({ users: { $elemMatch: { $eq: req.user._id } } })
       .populate("users", "-password")
@@ -93,7 +93,7 @@ const createGroupChat = asyncHandler(async (req, res) => {
   }
 
   users.push(req.user);
-  // console.log("updated users", users)
+  console.log("updated users", req.body.groupName)
   try {
     const groupChat = await Chat.create({
       groupName: req.body.groupName,
@@ -197,8 +197,8 @@ const addToGroup = asyncHandler(async (req, res) => {
 });
 
 export {
-  accessChat,
-  fetchChats,
+  accessGroup,
+  fetchGroups,
   createGroupChat,
   renameGroup,
   addToGroup,
