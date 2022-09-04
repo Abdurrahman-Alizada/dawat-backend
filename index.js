@@ -12,7 +12,6 @@ import taskRouter from './router/taskRouter.js';
 
 dotenv.config();
 
-// app config
 const app = express();
 const server = http.createServer(app)
 
@@ -63,5 +62,5 @@ wss.on("connection", function connection(ws) {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello World! from dawat-backend");
+  res.send("Hello World! from dawat-backend. it's working from heroku");
 });
