@@ -35,6 +35,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     chat: chatId,
   };
 
+  
   try {
     var message = await Message.create(newMessage);
 
