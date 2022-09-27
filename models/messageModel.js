@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const messageSchema = mongoose.Schema(
   {
-    sender: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
+    addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
     content: { type: String, trim: true },
     group: { type: mongoose.Schema.Types.ObjectId, ref: "group" },
     readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],

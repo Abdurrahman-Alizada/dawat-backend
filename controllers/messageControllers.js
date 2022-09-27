@@ -8,8 +8,8 @@ import Chat from "../models/groupModel.js";
 //@access          Protected
 const allMessages = asyncHandler(async (req, res) => {
   try {
-    const messages = await Message.find({ chat: req.params.chatId })
-      .populate("sender", "name pic email")
+    const messages = await Message.find({ group: req.params.groupId })
+      .populate("addedBy", "name pic email")
       .populate("group");
     res.json(messages);
   } catch (error) {
@@ -22,24 +22,24 @@ const allMessages = asyncHandler(async (req, res) => {
 //@route           POST /api/Message/
 //@access          Protected
 const sendMessage = asyncHandler(async (req, res) => {
-  const { content, chatId } = req.body;
-
-  if (!content || !chatId) {
+  const { content, groupId } = req.body;
+  console.log("data passed into request", content, groupId, req.user._id);
+  if (!content || !groupId) {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
   }
 
   var newMessage = {
-    sender: req.user._id,
+    addedBy: req.user._id,
     content: content,
-    chat: chatId,
+    group: groupId,
   };
 
   
   try {
     var message = await Message.create(newMessage);
 
-    message = await message.populate("sender", "name pic");
+    // message = await message.populate("sender", "name pic");
     message = await message.populate("group");
     message = await User.populate(message, {
       path: "group.users",
