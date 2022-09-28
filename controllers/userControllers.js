@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
-import generateToken from "../config/generateToken.js";
+// import generateToken from "../config/generateToken.js";
 
 //@description     Get or Search all users
 //@route           GET /api/user?search=
@@ -15,7 +15,7 @@ const allUsers = asyncHandler(async (req, res) => {
       }
     : {};
 
-  const users = await User.find(keyword).find({ _id: { $ne: req.user._id } });
+  const users = await User.find(keyword);
   res.send(users);
 });
 
@@ -52,7 +52,7 @@ const registerUser = asyncHandler(async (req, res) => {
       email: user.email,
       isAdmin: user.isAdmin,
       pic: user.pic,
-      token: generateToken(user._id),
+      // token: generateToken(user._id),
     });
   } else {
     res.status(400);
@@ -75,7 +75,7 @@ const authUser = asyncHandler(async (req, res) => {
       email: user.email,
       isAdmin: user.isAdmin,
       pic: user.pic,
-      token: generateToken(user._id),
+      // token: generateToken(user._id),
     });
   } else {
     res.status(401);
@@ -83,4 +83,4 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { allUsers, registerUser, authUser };
+export { allUsers, registerUser, authUser };

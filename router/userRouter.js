@@ -2,7 +2,8 @@ import express from "express";
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
-import protect from '../middleware/authMiddleware.js';
+import protect from "../middleware/authMiddleware.js";
+import { allUsers } from "../controllers/userControllers.js";
 
 const userRouter = express.Router();
 
@@ -19,8 +20,7 @@ userRouter.post("/login", async (req, res) => {
         token: generateToken(user),
         user: user,
         accessToken: generateToken(user),
-      }
-      );
+      });
     }
   }
   res.status(401).send({ message: "Invalid email or password" });
@@ -31,34 +31,32 @@ userRouter.route("/auth").get(protect, async (req, res) => {
 });
 
 userRouter.route("/my-account").get(protect, async (req, res) => {
-  const user = {name:"hello", email : 'hello@123',};
+  const user = { name: "hello", email: "hello@123" };
   res.send({ message: "Welcome Bro", user });
 });
 
-
 userRouter.post("/register", async (req, res) => {
- try{
+  try {
+    const user = new User({
+      name: req.body.name,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 8),
+    });
 
-   const user = new User({
-     name: req.body.name,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 8),
-  });
-  
-  const createdUser = await user.save();
-  // console.log(user);
-  return res.send({
+    const createdUser = await user.save();
+    // console.log(user);
+    return res.send({
       _id: createdUser._id,
       username: createdUser.username,
       email: createdUser.email,
       isAdmin: createdUser.isAdmin,
       token: generateToken(createdUser),
     });
-    
-  }catch(errors){
-    return res.status(200).send({ errors })
+  } catch (errors) {
+    return res.status(200).send({ errors });
   }
-}
-);
+});
+
+userRouter.route("/allusers").get(protect, allUsers);
 
 export default userRouter;
