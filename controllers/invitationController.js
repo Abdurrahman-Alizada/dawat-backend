@@ -55,4 +55,21 @@ const createInviti = asyncHandler(async (req, res) => {
   }
 });
 
-export { allInvities, createInviti };
+const deleteInviti = asyncHandler(async (req, res) => {
+  const { invitiId, groupId } = req.body;
+
+  if (!invitiId || !groupId) {
+    console.log("Invalid data passed into request");
+    return res.sendStatus(400);
+  }
+
+  try {
+    const inviti = await Invitation.findByIdAndDelete(invitiId);
+    res.json(inviti);
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+export { allInvities, createInviti, deleteInviti };
