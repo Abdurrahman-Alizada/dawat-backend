@@ -89,6 +89,7 @@ const updateInviti = asyncHandler(async (req, res) => {
     }
   )
 
+  
   if (!updatedInviti) {
     res.status(404);
     throw new Error("Inviti Not Found");
