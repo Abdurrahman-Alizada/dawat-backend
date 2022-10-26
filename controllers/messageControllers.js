@@ -5,7 +5,7 @@ import Chat from "../models/groupModel.js";
 
 
 //@description     Get all Messages
-//@route           GET /api/Message/:chatId
+//@route           GET /api/group/message/:groupId
 //@access          Protected
 const allMessages = asyncHandler(async (req, res) => {
   try {
@@ -20,7 +20,7 @@ const allMessages = asyncHandler(async (req, res) => {
 });
 
 //@description     Create New Message
-//@route           POST /api/Message/
+//@route           POST /api/group/message
 //@access          Protected
 const sendMessage = asyncHandler(async (req, res) => {
   const { content, groupId } = req.body;

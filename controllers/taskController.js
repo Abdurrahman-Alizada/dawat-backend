@@ -1,7 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import Chat from "../models/groupModel.js";
-import Invitation from "../models/invitaionModel.js";
 import Task from '../models/taskModal.js';
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
@@ -56,4 +55,49 @@ const createTask = asyncHandler(async (req, res) => {
   }
 });
 
-export { allTasks, createTask };
+// @desc    Delete Inviti
+// @route   DELETE api/group/task/delete
+// @access  Protected
+const deleteTask = asyncHandler(async (req, res) => {
+  const { taskId, groupId } = req.body;
+
+  if (!taskId || !groupId) {
+    console.log("Invalid data passed into request");
+    return res.sendStatus(400);
+  }
+
+  try {
+    const task = await Task.findByIdAndDelete(taskId);
+    res.json(task);
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+// @desc    Rename Inviti
+// @route   PUT api/group/task/update
+// @access  Protected
+const updateTask = asyncHandler(async (req, res) => {
+  const { taskId, taskName,taskDescription } = req.body;
+
+  const updatedTask = await Task.findByIdAndUpdate(
+    taskId,
+    {
+      taskName: taskName,
+      taskDescription:taskDescription
+    },
+    {
+      new: true,
+    }
+  )
+  if (!updatedTask) {
+    res.status(404);
+    throw new Error("Inviti Not Found");
+  } else {
+    res.json(updatedTask);
+  }
+});
+
+
+export { allTasks, createTask, updateTask, deleteTask };
