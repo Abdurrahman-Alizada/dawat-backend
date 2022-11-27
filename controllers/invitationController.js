@@ -28,7 +28,7 @@ const createInviti = asyncHandler(async (req, res) => {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
   }
-
+  
   var newInviti = {
     invitiName: invitiName,
     invitiDescription : invitiDescription,
