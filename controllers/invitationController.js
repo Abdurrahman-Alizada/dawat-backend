@@ -24,7 +24,7 @@ const allInvities = asyncHandler(async (req, res) => {
 const createInviti = asyncHandler(async (req, res) => {
   const { invitiName, invitiDescription, groupId, invitiImageURL, lastStatus, status } = req.body;
   // inviti name
-  
+
   if (!invitiName || !groupId) {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
@@ -36,8 +36,8 @@ const createInviti = asyncHandler(async (req, res) => {
     invitiImageURL:invitiImageURL,
     addedBy: req.user._id,
     lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
-    status : status,
     group: groupId,
+    $push: { statuses: lastStatus }
   };
 
   try {
