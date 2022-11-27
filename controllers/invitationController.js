@@ -37,12 +37,11 @@ const createInviti = asyncHandler(async (req, res) => {
     addedBy: req.user._id,
     lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
     group: groupId,
-    $push: { statuses: lastStatus }
   };
 
   try {
     let inviti = await Invitation.create(newInviti);
-
+    
     // inviti = await inviti.populate("sender", "name pic");
     inviti = await inviti.populate("group");
     inviti = await User.populate(inviti, {
@@ -50,6 +49,15 @@ const createInviti = asyncHandler(async (req, res) => {
       select: "name pic email",
     });
 
+    await Invitation.findByIdAndUpdate(
+      inviti._id,
+      {
+        $push: { statuses: inviti.lastStatus },
+      },
+      {
+        new: true,
+      }
+    )
     await Chat.findByIdAndUpdate(req.body.groupId, { latestInvitions: inviti });
 
     res.json(inviti);
