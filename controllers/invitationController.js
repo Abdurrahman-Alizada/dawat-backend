@@ -23,7 +23,8 @@ const allInvities = asyncHandler(async (req, res) => {
 //@access          Protected
 const createInviti = asyncHandler(async (req, res) => {
   const { invitiName, invitiDescription, groupId, invitiImageURL, lastStatus, status } = req.body;
-
+  // inviti name
+  
   if (!invitiName || !groupId) {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
