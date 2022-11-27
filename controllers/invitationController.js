@@ -95,8 +95,8 @@ const updateInviti = asyncHandler(async (req, res) => {
     {
       invitiName: invitiName,
       invitiDescription:invitiDescription,
-      lastStatus : lastStatus,
-      $push: { statuses: lastStatus }
+      lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
+      $push: { statuses: {invitiStatus: lastStatus, addedBy:req.user._id} }
     },
     {
       new: true,
