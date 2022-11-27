@@ -22,7 +22,7 @@ const allInvities = asyncHandler(async (req, res) => {
 //@route           POST /api/Message/
 //@access          Protected
 const createInviti = asyncHandler(async (req, res) => {
-  const { invitiName, invitiDescription, groupId } = req.body;
+  const { invitiName, invitiDescription, groupId, invitiImageURL, lastStatus, status } = req.body;
 
   if (!invitiName || !groupId) {
     console.log("Invalid data passed into request");
@@ -32,7 +32,10 @@ const createInviti = asyncHandler(async (req, res) => {
   var newInviti = {
     invitiName: invitiName,
     invitiDescription : invitiDescription,
+    invitiImageURL:invitiImageURL,
     addedBy: req.user._id,
+    lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
+    status : status,
     group: groupId,
   };
 
@@ -76,13 +79,15 @@ const deleteInviti = asyncHandler(async (req, res) => {
 // @route   PUT api/group/invitations/update
 // @access  Protected
 const updateInviti = asyncHandler(async (req, res) => {
-  const { invitiId, invitiName,invitiDescription } = req.body;
+  const { invitiId, invitiName,invitiDescription, lastStatus } = req.body;
 
   const updatedInviti = await Invitation.findByIdAndUpdate(
     invitiId,
     {
       invitiName: invitiName,
-      invitiDescription:invitiDescription
+      invitiDescription:invitiDescription,
+      lastStatus : lastStatus,
+      $push: { statuses: lastStatus }
     },
     {
       new: true,
