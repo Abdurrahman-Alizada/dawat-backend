@@ -23,6 +23,7 @@ const allInvities = asyncHandler(async (req, res) => {
 //@access          Protected
 const createInviti = asyncHandler(async (req, res) => {
   const { invitiName, invitiDescription, groupId, invitiImageURL, lastStatus, status } = req.body;
+  // inviti name
 
   if (!invitiName || !groupId) {
     console.log("Invalid data passed into request");
@@ -35,13 +36,12 @@ const createInviti = asyncHandler(async (req, res) => {
     invitiImageURL:invitiImageURL,
     addedBy: req.user._id,
     lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
-    status : status,
     group: groupId,
   };
 
   try {
     let inviti = await Invitation.create(newInviti);
-
+    
     // inviti = await inviti.populate("sender", "name pic");
     inviti = await inviti.populate("group");
     inviti = await User.populate(inviti, {
@@ -49,6 +49,15 @@ const createInviti = asyncHandler(async (req, res) => {
       select: "name pic email",
     });
 
+    await Invitation.findByIdAndUpdate(
+      inviti._id,
+      {
+        $push: { statuses: inviti.lastStatus },
+      },
+      {
+        new: true,
+      }
+    )
     await Chat.findByIdAndUpdate(req.body.groupId, { latestInvitions: inviti });
 
     res.json(inviti);
@@ -86,8 +95,8 @@ const updateInviti = asyncHandler(async (req, res) => {
     {
       invitiName: invitiName,
       invitiDescription:invitiDescription,
-      lastStatus : lastStatus,
-      $push: { statuses: lastStatus }
+      lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
+      $push: { statuses: {invitiStatus: lastStatus, addedBy:req.user._id} }
     },
     {
       new: true,
