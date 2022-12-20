@@ -10,7 +10,9 @@ const allInvities = asyncHandler(async (req, res) => {
   try {
     const messages = await Invitation.find({ group: req.params.groupId })
       .populate("addedBy", "name pic email")
-      .populate("group");
+      .populate("group")
+      .populate('statuses.addedBy', "name email" )
+
     res.json(messages);
   } catch (error) {
     res.status(400);
