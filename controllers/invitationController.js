@@ -90,7 +90,7 @@ const deleteInviti = asyncHandler(async (req, res) => {
 // @route   PUT api/group/invitations/update
 // @access  Protected
 const updateInviti = asyncHandler(async (req, res) => {
-  const { invitiId, invitiName,invitiDescription, lastStatus } = req.body;
+  const { invitiId, invitiName,invitiDescription, lastStatus, invitiImageURL } = req.body;
 
   const updatedInviti = await Invitation.findByIdAndUpdate(
     invitiId,
@@ -98,6 +98,7 @@ const updateInviti = asyncHandler(async (req, res) => {
       invitiName: invitiName,
       invitiDescription:invitiDescription,
       lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
+      invitiImageURL : invitiImageURL,
       $push: { statuses: {invitiStatus: lastStatus, addedBy:req.user._id} }
     },
     {
