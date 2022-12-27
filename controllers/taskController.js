@@ -10,6 +10,8 @@ const allTasks = asyncHandler(async (req, res) => {
   try {
     const messages = await Task.find({ group: req.params.groupId })
       .populate("addedBy", "name pic email")
+      .populate("responsibles.responsible", "name pic email")
+      .populate("priority.addedBy", "name pic email")
       .populate("group");
     res.json(messages);
   } catch (error) {
@@ -22,18 +24,33 @@ const allTasks = asyncHandler(async (req, res) => {
 //@route           POST /api/Message/
 //@access          Protected
 const createTask = asyncHandler(async (req, res) => {
-  const { taskName, taskDescription, groupId } = req.body;
-
+  const { taskName, taskDescription, groupId, responsibles, startingDate, dueDate, statuses, lastStatus, taskImageURL,priority } = req.body;
+ 
   if (!taskName || !groupId) {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
+  }
+  
+  statuses.push({taskStatus :lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */})
+  
+  let responsibleUsers = [];
+  for(let i=0; i<responsibles.length; i++){
+    responsibleUsers.push({responsible : responsibles[i], addedBy: "6332ac008afac5a474cd744d" /*addedBy:req.user._id */})
   }
 
   var newTask = {
     taskName: taskName,
     taskDescription : taskDescription,
-    addedBy: req.user._id,
+    // addedBy: req.user._id,
+    addedBy:"6332ac008afac5a474cd744d",
     group: groupId,
+    responsibles: responsibleUsers,
+    startingDate: startingDate,
+    dueDate:dueDate,
+    statuses:statuses,
+    lastStatus : {taskStatus: lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */},
+    taskImageURL:taskImageURL,
+    priority : { priority: priority, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */ }
   };
 
   try {
@@ -80,13 +97,53 @@ const deleteTask = asyncHandler(async (req, res) => {
 // @route   PUT api/group/task/update
 // @access  Protected
 const updateTask = asyncHandler(async (req, res) => {
-  const { taskId, taskName,taskDescription } = req.body;
+  const { taskId, taskName,taskDescription, responsibles, startingDate, dueDate, lastStatus, taskImageURL } = req.body;
+  
+  if(responsibles?.length > 0){
+     for(let i=0; i<responsibles.length; i++){
+      let conditions = {
+          _id: taskId,
+          'responsibles.responsible': { $ne: responsibles[i] }
+      };
+
+      let update = {
+          $addToSet: { responsibles: { responsible: responsibles[i], addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */ } }
+      }
+      
+      Task.findOneAndUpdate(conditions, update, async function (err, doc) {
+        if (doc) {
+          console.log("hello if",doc);
+        } else {
+          await Task.findOneAndUpdate(
+            { _id: taskId },
+            {
+              $pull: {
+                responsibles: {
+                  responsible: responsibles[i],
+                },
+              },
+            },
+            { safe: true, multi: false }
+          );
+          // Task.findOneAndUpdate(conditions, remove)
+        }
+      });
+    }         
+  }
+
 
   const updatedTask = await Task.findByIdAndUpdate(
     taskId,
     {
       taskName: taskName,
-      taskDescription:taskDescription
+      taskDescription:taskDescription,
+      // responsibles: responsibles,
+      startingDate: startingDate,
+      dueDate:dueDate,
+      lastStatus : {invitiStatus: lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */},
+      taskImageURL:taskImageURL,
+      $push: { statuses: {taskStatus: lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */} }
+    
     },
     {
       new: true,
@@ -94,7 +151,7 @@ const updateTask = asyncHandler(async (req, res) => {
   )
   if (!updatedTask) {
     res.status(404);
-    throw new Error("Inviti Not Found");
+    throw new Error("task Not Found");
   } else {
     res.json(updatedTask);
   }

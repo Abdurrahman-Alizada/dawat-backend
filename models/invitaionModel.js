@@ -5,8 +5,8 @@ const statusesSchema = new mongoose.Schema(
     invitiStatus: { type: String },
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
   }, {
-  _id: false, // omit _id fields for subfields
-  timestamps: true // timestamps options for subfields
+  _id: false, 
+  timestamps: true 
 });
 const invitationSchema = mongoose.Schema(
   {
@@ -20,10 +20,6 @@ const invitationSchema = mongoose.Schema(
       addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" }
     },
     statuses :[statusesSchema],
-    // statuses : [{
-    //   invitiStatus: { type: String },
-    //   addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
-    // }],
     group: { type: mongoose.Schema.Types.ObjectId, ref: "group" }
   },
   {
