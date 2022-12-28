@@ -31,26 +31,25 @@ const createTask = asyncHandler(async (req, res) => {
     return res.sendStatus(400);
   }
   
-  statuses.push({taskStatus :lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */})
+  statuses.push({taskStatus :lastStatus, addedBy:req.user._id })
   
   let responsibleUsers = [];
   for(let i=0; i<responsibles.length; i++){
-    responsibleUsers.push({responsible : responsibles[i], addedBy: "6332ac008afac5a474cd744d" /*addedBy:req.user._id */})
+    responsibleUsers.push({responsible : responsibles[i], addedBy:req.user._id })
   }
 
   var newTask = {
     taskName: taskName,
     taskDescription : taskDescription,
-    // addedBy: req.user._id,
-    addedBy:"6332ac008afac5a474cd744d",
+    addedBy: req.user._id,
     group: groupId,
     responsibles: responsibleUsers,
     startingDate: startingDate,
     dueDate:dueDate,
     statuses:statuses,
-    lastStatus : {taskStatus: lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */},
+    lastStatus : {taskStatus: lastStatus, addedBy:req.user._id },
     taskImageURL:taskImageURL,
-    priority : { priority: priority, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */ }
+    priority : { priority: priority, addedBy:req.user._id  }
   };
 
   try {
@@ -107,7 +106,7 @@ const updateTask = asyncHandler(async (req, res) => {
       };
 
       let update = {
-          $addToSet: { responsibles: { responsible: responsibles[i], addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */ } }
+          $addToSet: { responsibles: { responsible: responsibles[i], addedBy:req.user._id  } }
       }
       
       Task.findOneAndUpdate(conditions, update, async function (err, doc) {
@@ -125,7 +124,6 @@ const updateTask = asyncHandler(async (req, res) => {
             },
             { safe: true, multi: false }
           );
-          // Task.findOneAndUpdate(conditions, remove)
         }
       });
     }         
@@ -137,12 +135,11 @@ const updateTask = asyncHandler(async (req, res) => {
     {
       taskName: taskName,
       taskDescription:taskDescription,
-      // responsibles: responsibles,
       startingDate: startingDate,
       dueDate:dueDate,
-      lastStatus : {invitiStatus: lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */},
+      lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id },
       taskImageURL:taskImageURL,
-      $push: { statuses: {taskStatus: lastStatus, addedBy:"6332ac008afac5a474cd744d" /*addedBy:req.user._id */} }
+      $push: { statuses: {taskStatus: lastStatus, addedBy:req.user._id } }
     
     },
     {
