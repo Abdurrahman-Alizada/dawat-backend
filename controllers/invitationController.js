@@ -10,7 +10,9 @@ const allInvities = asyncHandler(async (req, res) => {
   try {
     const messages = await Invitation.find({ group: req.params.groupId })
       .populate("addedBy", "name pic email")
-      .populate("group");
+      .populate("group")
+      .populate('statuses.addedBy', "name email" )
+
     res.json(messages);
   } catch (error) {
     res.status(400);
@@ -88,7 +90,7 @@ const deleteInviti = asyncHandler(async (req, res) => {
 // @route   PUT api/group/invitations/update
 // @access  Protected
 const updateInviti = asyncHandler(async (req, res) => {
-  const { invitiId, invitiName,invitiDescription, lastStatus } = req.body;
+  const { invitiId, invitiName,invitiDescription, lastStatus, invitiImageURL } = req.body;
 
   const updatedInviti = await Invitation.findByIdAndUpdate(
     invitiId,
@@ -96,6 +98,7 @@ const updateInviti = asyncHandler(async (req, res) => {
       invitiName: invitiName,
       invitiDescription:invitiDescription,
       lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
+      invitiImageURL : invitiImageURL,
       $push: { statuses: {invitiStatus: lastStatus, addedBy:req.user._id} }
     },
     {

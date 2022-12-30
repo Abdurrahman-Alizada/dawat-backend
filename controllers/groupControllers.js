@@ -84,8 +84,7 @@ const createGroupChat = asyncHandler(async (req, res) => {
   }
 
   var users = req.body.users;
-  console.log("users ", users)
-
+  
   // if (users.length < 2) {
   //   return res
   //     .status(400)
@@ -93,7 +92,6 @@ const createGroupChat = asyncHandler(async (req, res) => {
   // }
 
   users.push(req.user);
-  console.log("updated users", req.body.groupName)
   try {
     const groupChat = await Chat.create({
       groupName: req.body.groupName,
