@@ -83,4 +83,20 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
-export { allUsers, registerUser, authUser };
+//@description     get the Current Login User
+//@route           get /api/users/:id
+//@access          Public
+const currentLoginUser = asyncHandler(async (req, res) => {
+  const { id } = req.body;
+  try {
+    const user = await User.findById(id);
+    res.json(user)
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  } 
+});
+
+
+
+export { allUsers, registerUser, authUser, currentLoginUser };

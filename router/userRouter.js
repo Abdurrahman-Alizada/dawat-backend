@@ -3,7 +3,7 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
 import protect from "../middleware/authMiddleware.js";
-import { allUsers } from "../controllers/userControllers.js";
+import { allUsers, currentLoginUser } from "../controllers/userControllers.js";
 
 const userRouter = express.Router();
 
@@ -58,5 +58,6 @@ userRouter.post("/register", async (req, res) => {
 });
 
 userRouter.route("/allusers").get(protect, allUsers);
+userRouter.route("/currentUser").get(currentLoginUser);
 
 export default userRouter;
