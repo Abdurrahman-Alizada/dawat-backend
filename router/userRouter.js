@@ -58,6 +58,6 @@ userRouter.post("/register", async (req, res) => {
 });
 
 userRouter.route("/allusers").get(protect, allUsers);
-userRouter.route("/currentUser").get(currentLoginUser);
+userRouter.route("/users/:id").get(currentLoginUser);
 
 export default userRouter;

@@ -87,7 +87,7 @@ const authUser = asyncHandler(async (req, res) => {
 //@route           get /api/users/:id
 //@access          Public
 const currentLoginUser = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const { id } = req.params;
   try {
     const user = await User.findById(id);
     res.json(user)
