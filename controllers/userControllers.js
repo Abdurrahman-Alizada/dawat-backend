@@ -1,6 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
-// import generateToken from "../config/generateToken.js";
+import bcrypt from "bcryptjs";
 
 //@description     Get or Search all users
 //@route           GET /api/user?search=
@@ -38,7 +38,6 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({
-
     name,
     email,
     password,
@@ -90,13 +89,99 @@ const currentLoginUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   try {
     const user = await User.findById(id);
-    res.json(user)
+    res.json(user);
   } catch (error) {
     res.status(400);
     throw new Error(error.message);
-  } 
+  }
 });
 
+//@description     update the name of user
+//@route           get /api/account/users/:id/updateName
+//@access          Protected
+const updateName = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
 
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { name: name },
+      { new: true }
+    );
+    console.log("user is : ", user);
+    if (!user) {
+      res.status(404).send({ message: "User not found" });
+    } else {
+      res.send(user);
+    }
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
 
-export { allUsers, registerUser, authUser, currentLoginUser };
+//@description     update the email of user
+//@route           get /api/account/users/:id/updateEmail
+//@access          Protected
+const updateEmail = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { email } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { email: email },
+      { new: true }
+    );
+    if (!user) {
+      res.status(404).send({ message: "User not found" });
+    } else {
+      res.send(user);
+    }
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+//@description     update the password of user
+//@route           get /api/account/users/:id/updatePassword
+//@access          Protected
+const updatePassword = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { oldPassword, newPassword } = req.body;
+  try {
+    const user = await User.findOne({ _id: id });
+    if (!user) {
+      return res.status(400).send("User not found");
+    }
+    // validate old password
+    const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+    if (!isValidPassword) {
+      return res.status(400).send("Please enter correct old password");
+    }
+
+    // hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { password: hashedPassword },
+      { new: true }
+    );
+    res.send(updatedUser);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send('Something went wrong. Try again');
+   }
+});
+
+export {
+  allUsers,
+  registerUser,
+  authUser,
+  currentLoginUser,
+  updateName,
+  updateEmail,
+  updatePassword,
+};
