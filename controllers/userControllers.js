@@ -176,6 +176,31 @@ const updatePassword = asyncHandler(async (req, res) => {
    }
 });
 
+//@description     update the image url of user
+//@route           get /api/account/users/:id/updateImgURL
+//@access          Protected
+const updateImageURL = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { imageURL } = req.body;
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      id,
+      { imageURL: imageURL },
+      { new: true }
+    );
+    if (!user) {
+      res.status(404).send({ message: "User not found" });
+    } else {
+      res.send(user);
+    }
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+
 export {
   allUsers,
   registerUser,
@@ -184,4 +209,5 @@ export {
   updateName,
   updateEmail,
   updatePassword,
+  updateImageURL
 };
