@@ -74,8 +74,8 @@ const fetchGroups = asyncHandler(async (req, res) => {
   }
 });
 
-//@description     Create New Group Chat
-//@route           POST /api/chat/group
+//@description     Create New Group
+//@route           POST /api/group/group
 //@access          Protected
 const createGroupChat = asyncHandler(async (req, res) => {
   
@@ -93,19 +93,23 @@ const createGroupChat = asyncHandler(async (req, res) => {
 
   users.push(req.user);
   try {
-    const groupChat = await Chat.create({
+    const group = await Chat.create({
       groupName: req.body.groupName,
+      groupDescription:req.body.groupDescription,
+      imageURL:req.body.imageURL,
+      isChat:req.body.isChat,
+      isTasks:req.body.isTasks,
+      isInvitations:req.body.isInvitations,
+      isMute: req.body.isMute,
       users: users,
-      isGroupChat: true,
       groupAdmin: req.user,
     });
 
-    const fullGroupChat = await Chat.findOne({ _id: groupChat._id })
+    const newGroup = await Chat.findOne({ _id: group._id })
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
 
-    res.status(200).json(fullGroupChat);
-    // res.status(200).json(groupChat);
+    res.status(200).json(newGroup);
   } catch (error) {
     res.status(400);
     throw new Error(error.message);
