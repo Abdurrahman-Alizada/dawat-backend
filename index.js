@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // api routes
 app.get("/", (req, res) => {
-  res.status(200).send("Hello World");
+  res.status(200).send("Hello World from dawat backend");
 });
 
 app.use("/api/account", userRouter);
@@ -59,8 +59,4 @@ wss.on("connection", function connection(ws) {
       }
     });
   });
-});
-
-app.get("/", (req, res) => {
-  res.send("Hello World! from dawat-backend. it's working from heroku");
 });
