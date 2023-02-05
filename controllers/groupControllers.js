@@ -119,13 +119,15 @@ const createGroupChat = asyncHandler(async (req, res) => {
 // @desc    Rename Group
 // @route   PUT /api/chat/rename
 // @access  Protected
-const renameGroup = asyncHandler(async (req, res) => {
-  const { chatId, groupName } = req.body;
+const updateGroup = asyncHandler(async (req, res) => {
+  const { chatId, groupName,groupDescription,imageURL } = req.body;
 
   const updatedChat = await Chat.findByIdAndUpdate(
     chatId,
     {
       groupName: groupName,
+      groupDescription:groupDescription,
+      imageURL:imageURL
     },
     {
       new: true,
@@ -202,7 +204,7 @@ export {
   accessGroup,
   fetchGroups,
   createGroupChat,
-  renameGroup,
+  updateGroup,
   addToGroup,
   removeFromGroup,
 };
