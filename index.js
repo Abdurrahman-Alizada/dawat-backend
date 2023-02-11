@@ -9,6 +9,7 @@ import groupRouter from './router/groupRouter.js';
 import messageRoutes from './router/messageRoutes.js';
 import invitationRouter from './router/invitationRouter.js';
 import taskRouter from './router/taskRouter.js';
+import FriendRouter from "./router/FriendshipRouter.js";
 
 dotenv.config();
 
@@ -42,6 +43,7 @@ app.use("/api/group", groupRouter);
 app.use("/api/group/message", messageRoutes);
 app.use("/api/group/invitations", invitationRouter);
 app.use("/api/group/tasks", taskRouter);
+app.use("/api/friendship", FriendRouter);
 // listen
 // app.listen(port, () => console.log(`Listening on local host ${port}`));
 server.listen(port, () => console.log(`Listening on local host ${port}`));
