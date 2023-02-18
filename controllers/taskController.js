@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import Chat from "../models/groupModel.js";
-import Task from '../models/taskModal.js';
+import Task from "../models/taskModal.js";
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
 //@access          Protected
@@ -24,32 +24,46 @@ const allTasks = asyncHandler(async (req, res) => {
 //@route           POST /api/Message/
 //@access          Protected
 const createTask = asyncHandler(async (req, res) => {
-  const { taskName, taskDescription, groupId, responsibles, startingDate, dueDate, statuses, lastStatus, taskImageURL,priority } = req.body;
- 
+  const {
+    taskName,
+    taskDescription,
+    groupId,
+    responsibles,
+    startingDate,
+    dueDate,
+    statuses,
+    lastStatus,
+    taskImageURL,
+    priority,
+  } = req.body;
+
   if (!taskName || !groupId) {
     console.log("Invalid data passed into request");
     return res.sendStatus(400);
   }
-  
-  statuses.push({taskStatus :lastStatus, addedBy:req.user._id })
-  
+
+  statuses.push({ taskStatus: lastStatus, addedBy: req.user._id });
+
   let responsibleUsers = [];
-  for(let i=0; i<responsibles.length; i++){
-    responsibleUsers.push({responsible : responsibles[i], addedBy:req.user._id })
+  for (let i = 0; i < responsibles.length; i++) {
+    responsibleUsers.push({
+      responsible: responsibles[i],
+      addedBy: req.user._id,
+    });
   }
 
   var newTask = {
     taskName: taskName,
-    taskDescription : taskDescription,
+    taskDescription: taskDescription,
     addedBy: req.user._id,
     group: groupId,
     responsibles: responsibleUsers,
     startingDate: startingDate,
-    dueDate:dueDate,
-    statuses:statuses,
-    lastStatus : {taskStatus: lastStatus, addedBy:req.user._id },
-    taskImageURL:taskImageURL,
-    priority : { priority: priority, addedBy:req.user._id  }
+    dueDate: dueDate,
+    statuses: statuses,
+    lastStatus: { taskStatus: lastStatus, addedBy: req.user._id },
+    taskImageURL: taskImageURL,
+    priority: { priority: priority, addedBy: req.user._id },
   };
 
   try {
@@ -91,27 +105,37 @@ const deleteTask = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc    Rename Inviti
 // @route   PUT api/group/task/update
 // @access  Protected
 const updateTask = asyncHandler(async (req, res) => {
-  const { taskId, taskName,taskDescription, responsibles, startingDate, dueDate, lastStatus, taskImageURL } = req.body;
-  
-  if(responsibles?.length > 0){
-     for(let i=0; i<responsibles.length; i++){
+  const {
+    taskId,
+    taskName,
+    taskDescription,
+    responsibles,
+    startingDate,
+    dueDate,
+    lastStatus,
+    taskImageURL,
+  } = req.body;
+
+  if (responsibles?.length > 0) {
+    for (let i = 0; i < responsibles.length; i++) {
       let conditions = {
-          _id: taskId,
-          'responsibles.responsible': { $ne: responsibles[i] }
+        _id: taskId,
+        "responsibles.responsible": { $ne: responsibles[i] },
       };
 
       let update = {
-          $addToSet: { responsibles: { responsible: responsibles[i], addedBy:req.user._id  } }
-      }
-      
+        $addToSet: {
+          responsibles: { responsible: responsibles[i], addedBy: req.user._id },
+        },
+      };
+
       Task.findOneAndUpdate(conditions, update, async function (err, doc) {
         if (doc) {
-          console.log("hello if",doc);
+          console.log("hello if", doc);
         } else {
           await Task.findOneAndUpdate(
             { _id: taskId },
@@ -126,26 +150,26 @@ const updateTask = asyncHandler(async (req, res) => {
           );
         }
       });
-    }         
+    }
   }
-
 
   const updatedTask = await Task.findByIdAndUpdate(
     taskId,
     {
-      taskName: taskName,
-      taskDescription:taskDescription,
-      startingDate: startingDate,
-      dueDate:dueDate,
-      lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id },
-      taskImageURL:taskImageURL,
-      $push: { statuses: {taskStatus: lastStatus, addedBy:req.user._id } }
-    
+      '$set': {
+        taskName: taskName,
+        taskDescription: taskDescription,
+        startingDate: startingDate,
+        dueDate: dueDate,
+        lastStatus: { invitiStatus: lastStatus, addedBy: req.user._id },
+        taskImageURL: taskImageURL,
+        $push: { statuses: { taskStatus: lastStatus, addedBy: req.user._id } },
+      },
     },
     {
       new: true,
     }
-  )
+  );
   if (!updatedTask) {
     res.status(404);
     throw new Error("task Not Found");
@@ -153,6 +177,5 @@ const updateTask = asyncHandler(async (req, res) => {
     res.json(updatedTask);
   }
 });
-
 
 export { allTasks, createTask, updateTask, deleteTask };
