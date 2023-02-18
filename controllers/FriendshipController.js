@@ -120,7 +120,6 @@ const getAllFriends = asyncHandler(async (req, res) => {
       },
     ]);
 
-    const filterusers = users.filter((user) => user.friendsStatus === 2);
     let addFriend = [];
     let requested = [];
     let pending = [];
@@ -136,7 +135,6 @@ const getAllFriends = asyncHandler(async (req, res) => {
         accepted.push(users[i]);
       }
     }
-    // res.send(filterusers);
     res.send({
       addFriend: addFriend,
       requested: requested,
