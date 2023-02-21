@@ -81,7 +81,7 @@ const createTask = asyncHandler(async (req, res) => {
     // generate logs for creating task
     const newLog = {
       taskId: task?._id,
-      logDescription: `${task?.addedBy?.name} created the task '${task?.taskName}'`,
+      logDescription: `created the task '${task?.taskName}'`,
       addedBy: task?.addedBy,
       isSystemGenerated: true,
       identifier: "task-created",
@@ -391,7 +391,15 @@ const updateResponsibles = asyncHandler(async (req, res) => {
 
        Task.findOneAndUpdate(conditions, update, async function (err, doc) {
         if (doc) {
-          // console.log("hello if", doc);
+          const newLog = {
+            taskId: taskId,
+            logDescription: `added '${responsibles[i].name}'`,
+            addedBy: userId,
+            isSystemGenerated: false,
+            identifier: "task-responsible-added",
+          };
+          await TaskLogs.create(newLog);
+          
           if(responsibles.length - 1 == i){
             res.send(doc)
           }
