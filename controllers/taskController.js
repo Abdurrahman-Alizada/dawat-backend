@@ -201,7 +201,7 @@ const markAsCompleted = asyncHandler(async (req, res) => {
   // generate logs for mark as completed
   const newLog = {
     taskId: taskId,
-    logDescription: `mark as completed`,
+    logDescription: condition ? `mark as completed` : "mark as incomplete",
     addedBy: userId,
     isSystemGenerated: false,
     identifier: condition ? "task-completed" : "task-not-completed",

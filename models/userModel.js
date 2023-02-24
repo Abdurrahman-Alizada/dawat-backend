@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema(
     token: { type: String },
     isAdmin: { type: Boolean, default: false, required: true },
     groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "post" }],
-    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Friends'}]
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Friends'}],
+    verified: { type: Boolean, default: false },
   },
   {
     timestamps: true,
