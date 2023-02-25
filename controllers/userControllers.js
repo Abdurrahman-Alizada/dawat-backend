@@ -28,7 +28,7 @@ const allUsers = asyncHandler(async (req, res) => {
 //@access          Public
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { name, email, password, pic } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).send({ message: "Please enter all the fields" });
@@ -55,14 +55,14 @@ const registerUser = asyncHandler(async (req, res) => {
         userId: user._id,
         token: crypto.randomBytes(32).toString("hex"),
       });
-      const url = `${process.env.BASE_URL}/users/${user._id}/verify/${token.token}`;
-      await sendEmail(user.email, "Verify Email", url);
+      const url = `${process.env.BASE_URL}/api/account/user/${user._id}/verify/${token.token}`;
+      await sendEmail(user.email, "Please verify your email.", url);
       res
         .status(201)
         .send({ message: "An Email sent to your account please verify" });
     } else {
       res.status(400);
-      throw new Error("User not found");
+      throw new Error("Something went wrong");
     }
   } catch (errors) {
     return res.status(200).send({ errors });
@@ -85,7 +85,7 @@ const loginUser = asyncHandler(async (req, res) => {
         return res.status(401).send({ message: "Invalid Email or Password" });
 
       if (!user.verified) {
-        return res.status(400).send({
+        return res.status(401).send({
           message:
             "An Email was sent to your account please verify the provided email",
         });
