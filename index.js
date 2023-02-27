@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import http from 'http'
 import WebSocket, {WebSocketServer} from 'ws';
+import {Server} from "socket.io";
 import userRouter from "./router/userRouter.js";
 import groupRouter from './router/groupRouter.js';
 import messageRoutes from './router/messageRoutes.js';
@@ -52,16 +53,46 @@ app.use('/api/group/task/logs', TaskLogsRouter);
 server.listen(port, () => console.log(`Listening on local host ${port}`));
 
 //chat
-const wss = new WebSocketServer({server});
 
-wss.on("connection", function connection(ws) {
-  ws.on("message", function incoming(message, isBinary) {
-    console.log("the message is....",message.toString(), isBinary);
+const io = new Server(server, {
+  pingTimeout: 60000,
+  cors: {
+    origin: "*",
+  },
+});
 
-    wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message.toString());
-      }
+
+io.on("connection", (socket) => {
+  // console.log("Sockets are in action");
+  socket.on("setup", (userData) => {
+    socket.join(userData._id);
+    console.log(userData.name, "connected");
+    socket.emit("connected");
+  });
+  socket.on("join chat", (room) => {
+    socket.join(room);
+    console.log("User joined room: " + room);
+  });
+  socket.on("new message", (newMessage) => {
+    
+    let chat = newMessage;
+
+    if (!chat.group.users.length) return console.log("chat.users not defined");
+
+    chat.group.users.forEach((user) => {
+      if (user._id === newMessage.addedBy._id) return;
+      socket.in(user._id).emit("message received", newMessage);
+    });
+    socket.on("typing", (room) => {
+      socket.in(room).emit("typing");
+    });
+    socket.on("stop typing", (room) => {
+      socket.in(room).emit("stop typing");
     });
   });
+  socket.off("setup", () => {
+    console.log("USER DISCONNECTED");
+    socket.leave(userData._id);
+  });
 });
+
