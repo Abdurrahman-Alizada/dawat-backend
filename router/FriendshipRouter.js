@@ -6,6 +6,7 @@ import {
   acceptFriendRequest,
   declineFriendRequest,
   getAllFriends,
+  SearchFriends
 } from "../controllers/FriendshipController.js";
 
 const FriendRouter = express.Router();
@@ -14,5 +15,6 @@ FriendRouter.route("/sendRequest").post(protect, sendFriendRequest);
 FriendRouter.route("/acceptRequest").post(protect, acceptFriendRequest);
 FriendRouter.route("/declineRequest").post(protect, declineFriendRequest);
 FriendRouter.route("/getFriends/:userId").get(protect, getAllFriends);
+FriendRouter.route("/search/:searchQuery").get(SearchFriends);
 
 export default FriendRouter;

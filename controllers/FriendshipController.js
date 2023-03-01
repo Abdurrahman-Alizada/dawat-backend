@@ -3,7 +3,7 @@ import User from "../models/userModel.js";
 import Friend from "../models/FriendshipModel.js";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-//@description     Send Friend Request 
+//@description     Send Friend Request
 //@route           post /api/friendship/sendRequest
 //@access          Protected
 const sendFriendRequest = asyncHandler(async (req, res) => {
@@ -91,10 +91,27 @@ const declineFriendRequest = asyncHandler(async (req, res) => {
 //@description     get all user that can be possible friend
 //@route           get /api/friendship/getFriends/:userId
 //@access          Protected
+//@comment         before changing the functionality of this function, remember first rule of programming: If it's working don't touch it.
 const getAllFriends = asyncHandler(async (req, res) => {
   const { userId } = req.params;
+  if (!userId) {
+    res.status(400).send({ message: "userId not found" });
+  }
   try {
     const users = await User.aggregate([
+      {
+        $addFields: {
+          friends: {
+            $cond: {
+              if: {
+                $ne: [{ $type: "$friends" }, "array"],
+              },
+              then: [],
+              else: "$friends",
+            },
+          },
+        },
+      },
       {
         $lookup: {
           from: Friend.collection.name,
@@ -125,14 +142,16 @@ const getAllFriends = asyncHandler(async (req, res) => {
     let pending = [];
     let accepted = [];
     for (let i = 0; i < users.length; i++) {
-      if (users[i].friendsStatus === 0) {
-        addFriend.push(users[i]);
-      } else if (users[i].friendsStatus === 1) {
-        requested.push(users[i]);
-      } else if (users[i].friendsStatus === 2) {
-        pending.push(users[i]);
-      } else if (users[i].friendsStatus === 3) {
-        accepted.push(users[i]);
+      if (users[i]._id.valueOf() !== userId) {
+        if (users[i].friendsStatus === 0) {
+          addFriend.push(users[i]);
+        } else if (users[i].friendsStatus === 1) {
+          requested.push(users[i]);
+        } else if (users[i].friendsStatus === 2) {
+          pending.push(users[i]);
+        } else if (users[i].friendsStatus === 3) {
+          accepted.push(users[i]);
+        }
       }
     }
     res.send({
@@ -142,8 +161,37 @@ const getAllFriends = asyncHandler(async (req, res) => {
       accepted: accepted,
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json(err);
   }
+});
+
+//@description     Search for friends
+//@route           get /api/friendship?searh
+//@access          Public
+const SearchFriends = asyncHandler(async (req, res, next) => {
+  // We look for a query parameter "search"
+  const { searchQuery } = req.params;
+  let friends;
+
+  if (searchQuery) {
+     friends = await User.find({ name: new RegExp(searchQuery, "i") })
+    .limit(15)
+    .select("-password -email")
+    // .lean()
+
+    res.send(friends);
+  } else {
+    friends = await User.find()
+      .select("-password -email")
+      .sort({ createdAt: "desc" });
+    res.send(friends)
+  }
+  // return res.status(200).json({
+  //   statusCode: 200,
+  //   message: "Fetched friends",
+  //   data:  friends ,
+  // });
 });
 
 export {
@@ -151,4 +199,5 @@ export {
   acceptFriendRequest,
   declineFriendRequest,
   getAllFriends,
+  SearchFriends,
 };
