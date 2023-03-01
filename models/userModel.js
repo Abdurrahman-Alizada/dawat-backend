@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
     imageURL:{type:String},
     token: { type: String },
     isAdmin: { type: Boolean, default: false, required: true },
-    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "post" }],
+    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "group" }],
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Friends'}],
     verified: { type: Boolean, default: false },
   },
