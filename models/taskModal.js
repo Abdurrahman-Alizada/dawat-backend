@@ -42,17 +42,9 @@ const TaskSchema = mongoose.Schema(
     responsibles: [responsiblesSchema],
     startingDate: { type: Date, default: Date.now },
     dueDate: { type: Date, default: Date.now },
-    statuses: [statusesSchema],
-    lastStatus: {
-      taskStatus: { type: String },
-      addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
-    },
     taskImageURL: { type: String },
     priority: prioritySchema,
-    completed: {
-      type: Boolean,
-      default: false,
-    },
+    isCompleted: { type: Boolean, default: false },
   },
   {
     timestamps: true,

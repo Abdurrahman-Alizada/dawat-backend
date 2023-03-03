@@ -1,6 +1,10 @@
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
+import Token from "../models/tokenModel.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
+import { generateToken } from "../utils/generateToken.js";
 
 //@description     Get or Search all users
 //@route           GET /api/user?search=
@@ -23,39 +27,107 @@ const allUsers = asyncHandler(async (req, res) => {
 //@route           POST /api/user/
 //@access          Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, pic } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-  if (!name || !email || !password) {
-    res.status(400);
-    throw new Error("Please Enter all the Feilds");
-  }
+    if (!name || !email || !password) {
+      return res.status(400).send({ message: "Please enter all the fields" });
+      // throw new Error("Please Enter all the Feilds");
+    }
 
-  const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email });
 
-  if (userExists) {
-    res.status(400);
-    throw new Error("User already exists");
-  }
+    if (userExists) {
+      res.status(409).send({ message: "User with given email already Exist!" });
+    }
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    pic,
-  });
+    const salt = await bcrypt.genSalt(Number(process.env.SALT));
+    const hashPassword = await bcrypt.hash(password, salt);
 
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      pic: user.pic,
-      // token: generateToken(user._id),
+    const user = await User.create({
+      name: name,
+      email: email,
+      password: hashPassword,
     });
-  } else {
-    res.status(400);
-    throw new Error("User not found");
+
+    if (user) {
+      const token = await Token.create({
+        userId: user._id,
+        token: crypto.randomBytes(32).toString("hex"),
+      });
+      const url = `${process.env.BASE_URL}/api/account/user/${user._id}/verify/${token.token}`;
+      await sendEmail(user.email, "Please verify your email.", url);
+      res
+        .status(201)
+        .send({ message: "An Email sent to your account please verify" });
+    } else {
+      res.status(400);
+      throw new Error("Something went wrong");
+    }
+  } catch (errors) {
+    return res.status(200).send({ errors });
+  }
+});
+
+//@description     Login user
+//@route           POST /api/user/login
+//@access          Public
+const loginUser = asyncHandler(async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email: email });
+
+    if (user) {
+      const validPassword = await bcrypt.compare(password, user.password);
+
+      if (!validPassword)
+        return res.status(401).send({ message: "Invalid Email or Password" });
+
+      if (!user.verified) {
+        return res.status(401).send({
+          message:
+            "An Email was sent to your account please verify the provided email",
+        });
+      }
+
+      res.status(200).send({
+        user: user,
+        token: generateToken(user),
+      });
+    } else {
+      res
+        .status(200)
+        .send({ message: "User not found. Please register first" });
+      // res.status(401).send({ message: "Invalid email or password" });
+    }
+  } catch (errors) {
+    return res
+      .status(200)
+      .send({ message: "internal server error", error: errors });
+  }
+});
+
+//@description     Verify the token for email varification
+//@route           POST /api/account/user/:id/verify/:token
+//@access          Public
+const Verify = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.params.id });
+    if (!user) return res.status(400).send({ message: "Invalid link" });
+
+    const token = await Token.findOne({
+      userId: user._id,
+      token: req.params.token,
+    });
+    if (!token) return res.status(400).send({ message: "Invalid link" });
+
+    await User.findByIdAndUpdate(user._id, { verified: true }, { new: true });
+    await token.remove();
+
+    res.status(200).send({ message: "Email verified successfully" });
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
   }
 });
 
@@ -172,8 +244,8 @@ const updatePassword = asyncHandler(async (req, res) => {
     res.send(updatedUser);
   } catch (error) {
     console.log(error);
-    return res.status(500).send('Something went wrong. Try again');
-   }
+    return res.status(500).send("Something went wrong. Try again");
+  }
 });
 
 //@description     update the image url of user
@@ -200,14 +272,15 @@ const updateImageURL = asyncHandler(async (req, res) => {
   }
 });
 
-
 export {
   allUsers,
-  registerUser,
   authUser,
   currentLoginUser,
   updateName,
   updateEmail,
   updatePassword,
-  updateImageURL
+  updateImageURL,
+  registerUser,
+  loginUser,
+  Verify,
 };
