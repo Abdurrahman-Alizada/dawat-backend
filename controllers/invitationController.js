@@ -91,16 +91,26 @@ const deleteInviti = asyncHandler(async (req, res) => {
 // @access  Protected
 const updateInviti = asyncHandler(async (req, res) => {
   const { invitiId, invitiName,invitiDescription, lastStatus, invitiImageURL } = req.body;
+  
+  // if last status is not updated
+  const informationWithoutStatusUpdate = {
+    invitiName: invitiName,
+    invitiDescription:invitiDescription,
+    invitiImageURL : invitiImageURL,
+  }
+
+  // if last status is updated
+  const informationWithStatusUpdate = {
+    invitiName: invitiName,
+    invitiDescription:invitiDescription,
+    invitiImageURL : invitiImageURL,
+    lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
+    $push: { statuses: {invitiStatus: lastStatus, addedBy:req.user._id} }
+  }
 
   const updatedInviti = await Invitation.findByIdAndUpdate(
     invitiId,
-    {
-      invitiName: invitiName,
-      invitiDescription:invitiDescription,
-      lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
-      invitiImageURL : invitiImageURL,
-      $push: { statuses: {invitiStatus: lastStatus, addedBy:req.user._id} }
-    },
+    lastStatus ? informationWithStatusUpdate : informationWithoutStatusUpdate,
     {
       new: true,
     }
