@@ -7,10 +7,10 @@ const friendsSchema = new mongoose.Schema(
     status: {
       type: Number,
       enums: [
-        0, //'add friend',
-        1, //'requested',
-        2, //'pending',
-        3, //'friends'
+        0, //'add friend - current login user can send request',
+        1, //'requested - current login user request to connect',
+        2, //'pending -  other request to current login user to connect',
+        3, //'friends - one requested and another accepted'
       ],
     },
   },
