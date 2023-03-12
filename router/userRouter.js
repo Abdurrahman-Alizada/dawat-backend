@@ -12,7 +12,8 @@ import {
   updateImageURL,
   Verify,
   registerUser,
-  loginUser
+  loginUser,
+  deleleUserByItSelf
 } from "../controllers/userControllers.js";
 
 const userRouter = express.Router();
@@ -69,6 +70,7 @@ userRouter.post("/register", async (req, res) => {
 
 userRouter.route("/allusers").get(protect, allUsers);
 userRouter.route("/users/:id").get(currentLoginUser);
+userRouter.route("/users/:id/deleleUserByItSelf").delete(protect,deleleUserByItSelf);
 
 userRouter.route("/user/register").post(registerUser);
 userRouter.route("/user/login").post(loginUser);
