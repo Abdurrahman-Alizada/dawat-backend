@@ -10,13 +10,13 @@ import Chat from "../models/groupModel.js";
 const allMessages = asyncHandler(async (req, res) => {
   try {
     let messages = await Message.find({ group: req.params.groupId })
-      .populate("addedBy", "name pic email")
-      .populate("group")
+      .populate("addedBy", "name imageURL").sort({_id:-1}) 
+      // .populate("group")
     
-    messages =  await User.populate(messages, {
-        path: "group.users",
-        select: "name email imageURL",
-      });
+    // messages =  await User.populate(messages, {
+    //     path: "group.users",
+    //     select: "name imageURL",
+    //   });
 
     res.json(messages);
   } catch (error) {
