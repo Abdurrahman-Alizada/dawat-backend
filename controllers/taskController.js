@@ -11,10 +11,11 @@ import TaskLogs from "../models/taskLogsModel.js";
 const allTasks = asyncHandler(async (req, res) => {
   try {
     const messages = await Task.find({ group: req.params.groupId })
-      .populate("addedBy", "name pic email")
-      .populate("responsibles.responsible", "name pic email")
-      .populate("priority.addedBy", "name pic email")
-      .populate("group");
+      .populate("addedBy", "name imageURL")
+      .populate("responsibles.responsible", "name imageURL")
+      .populate("responsibles.addedBy", "name imageURL")
+      .populate("priority.addedBy", "name imageURL")
+      // .populate("group");
     res.json(messages);
   } catch (error) {
     res.status(400);
@@ -69,7 +70,7 @@ const createTask = asyncHandler(async (req, res) => {
   try {
     let task = await Task.create(newTask);
 
-    task = await task.populate("addedBy", "name pic");
+    task = await task.populate("addedBy", "name imageURL");
     task = await task.populate("group");
     task = await User.populate(task, {
       path: "group.users",
