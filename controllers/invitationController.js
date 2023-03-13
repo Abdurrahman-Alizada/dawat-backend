@@ -125,4 +125,34 @@ const updateInviti = asyncHandler(async (req, res) => {
   }
 });
 
-export { allInvities, createInviti, deleteInviti, updateInviti };
+
+// @desc    Rename Inviti status
+// @route   PUT api/group/invitations/:id/updateInviteStatus
+// @access  Protected
+const updateInvitiStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { lastStatus } = req.body;
+
+  const information = {
+    lastStatus : {invitiStatus: lastStatus, addedBy:req.user._id},
+    $push: { statuses: {invitiStatus: lastStatus, addedBy:req.user._id} }
+  }
+
+  const updatedInviti = await Invitation.findByIdAndUpdate(
+    id,
+    information,
+    {
+      new: true,
+    }
+  )
+
+  if (!updatedInviti) {
+    res.status(404);
+    throw new Error("Inviti Not Found");
+  } else {
+    res.json(updatedInviti);
+  }
+});
+
+
+export { allInvities, createInviti, deleteInviti, updateInviti, updateInvitiStatus };
