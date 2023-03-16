@@ -9,9 +9,10 @@ import Invitation from "../models/invitaionModel.js";
 const allInvities = asyncHandler(async (req, res) => {
   try {
     const messages = await Invitation.find({ group: req.params.groupId })
-      .populate("addedBy", "name pic email")
+      .populate("addedBy", "name imageURL")
       .populate("group")
-      .populate('statuses.addedBy', "name email" )
+      .populate('statuses.addedBy', "name imageURL" )
+      .populate('lastStatus.addedBy', "name imageURL" )
 
     res.json(messages);
   } catch (error) {
@@ -20,8 +21,8 @@ const allInvities = asyncHandler(async (req, res) => {
   }
 });
 
-//@description     Create New Message
-//@route           POST /api/Message/
+//@description     Create New Inviti
+//@route           POST /api/group/invitations
 //@access          Protected
 const createInviti = asyncHandler(async (req, res) => {
   const { invitiName, invitiDescription, groupId, invitiImageURL, lastStatus, status } = req.body;
@@ -63,6 +64,36 @@ const createInviti = asyncHandler(async (req, res) => {
     await Chat.findByIdAndUpdate(req.body.groupId, { latestInvitions: inviti });
 
     res.json(inviti);
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+//@description     Create New multiple inviti 
+//@route           POST /api/group/invitations/addMultiple
+//@access          Protected
+//@comment         I write this code while I was depressed because of some family issues. There may be some irrelevent variable names or something else. please ignore it.
+const createMultipleInviti = asyncHandler(async (req, res) => {
+  const { groupId, invities } = req.body;
+
+  try {
+    
+    const readyToAddInvities = invities.map((inviti)=>  {
+      var newInviti = {
+        invitiName: inviti.invitiName,
+        invitiDescription : inviti.invitiDescription,
+        invitiImageURL:inviti.invitiImageURL ? inviti.invitiImageURL : "",
+        addedBy: req.user._id,
+        lastStatus : {invitiStatus: inviti.lastStatus, addedBy:req.user._id},
+        group: groupId,
+      };
+     return newInviti    
+    }
+  )
+    let res1 = await Invitation.insertMany(readyToAddInvities);
+    res.json(res1);
+
   } catch (error) {
     res.status(400);
     throw new Error(error.message);
@@ -155,4 +186,4 @@ const updateInvitiStatus = asyncHandler(async (req, res) => {
 });
 
 
-export { allInvities, createInviti, deleteInviti, updateInviti, updateInvitiStatus };
+export { allInvities, createInviti, deleteInviti, updateInviti, updateInvitiStatus, createMultipleInviti };

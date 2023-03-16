@@ -12,6 +12,7 @@ import invitationRouter from './router/invitationRouter.js';
 import taskRouter from './router/taskRouter.js';
 import FriendRouter from "./router/FriendshipRouter.js";
 import TaskLogsRouter from "./router/TaskLogsRouter.js";
+import bodyParser from "body-parser";
 
 dotenv.config();
 
@@ -19,6 +20,10 @@ const app = express();
 const server = http.createServer(app)
 
 const port = process.env.PORT || 8000;
+
+// parser 
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 // db config
 mongoose.connect(process.env.MONGO_URL, {
