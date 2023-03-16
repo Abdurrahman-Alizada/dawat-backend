@@ -11,7 +11,7 @@ const statusesSchema = new mongoose.Schema(
 const invitationSchema = mongoose.Schema(
   {
     invitiName: { type: String, required: true },
-    invitiDescription: { type: String, required: true },
+    invitiDescription: { type: String },
     invitiImageURL: {type : String},
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "user"},  
   
