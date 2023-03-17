@@ -7,7 +7,8 @@ import {
   updateInviti,
   updateInvitiStatus,
   createMultipleInviti,
-  deleteMultipleInviti
+  deleteMultipleInviti,
+  updateStatusOfMultipleInvities
 } from "../controllers/invitationController.js";
 import protect from "../middleware/authMiddleware.js";
 
@@ -20,5 +21,6 @@ router.route("/delete").delete(protect, deleteInviti);
 router.route("/deleteMultiple").delete(protect, deleteMultipleInviti);
 router.route("/update").put(protect, updateInviti);
 router.route("/:id/updateInviteStatus").patch(protect, updateInvitiStatus);
+router.route("/updateStatusOfMultipleInvities").patch(protect, updateStatusOfMultipleInvities);
 
 export default router;

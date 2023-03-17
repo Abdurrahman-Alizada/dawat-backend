@@ -92,6 +92,7 @@ const createMultipleInviti = asyncHandler(async (req, res) => {
         invitiImageURL: inviti.invitiImageURL ? inviti.invitiImageURL : "",
         addedBy: req.user._id,
         lastStatus: { invitiStatus: inviti.lastStatus, addedBy: req.user._id },
+        statuses: [{ invitiStatus: inviti.lastStatus, addedBy: req?.user?._id }],
         group: groupId,
       };
       return newInviti;
@@ -128,23 +129,28 @@ const deleteInviti = asyncHandler(async (req, res) => {
 //@route           POST /api/group/invitations/deleteMany
 //@access          Protected
 const deleteMultipleInviti = asyncHandler(async (req, res) => {
-
   const { invities, groupId } = req.body;
   try {
     const user = await User.findById(req?.user?._id);
     const group = await Chat.findById(groupId);
-    
-    const foundedUsers = group?.users?.filter(singleUser => singleUser.valueOf() === user?._id?.valueOf())
-    if(foundedUsers.length){
+
+    const foundedUsers = group?.users?.filter(
+      (singleUser) => singleUser.valueOf() === user?._id?.valueOf()
+    );
+    if (foundedUsers.length) {
       const deletedInviti = await Invitation.deleteMany({
         _id: { $in: invities },
       });
-      res.status(200).send({message:"user can delete inviti", deletedInvitis : deletedInviti})
-    }else{
-      res.status(199).send({message:"user not include in this group. Only member of group can remove invitations from group"})
-   
+      res.status(200).send({
+        message: "user can delete inviti",
+        deletedInvitis: deletedInviti,
+      });
+    } else {
+      res.status(199).send({
+        message:
+          "user not include in this group. Only member of group can remove invitations from group",
+      });
     }
-   
   } catch (error) {
     res.status(400);
     throw new Error(error.message);
@@ -219,6 +225,45 @@ const updateInvitiStatus = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    update status of multiple invities at one call
+// @route   PUT api/group/invitations/:id/updateStatusOfMultipleInvities
+// @access  Protected
+const updateStatusOfMultipleInvities = asyncHandler(async (req, res) => {
+  const { invities, groupId, lastStatus } = req.body;
+
+  try {
+    const user = await User.findById(req?.user?._id);
+    const group = await Chat.findById(groupId);
+
+    const foundedUsers = group?.users?.filter(
+      (singleUser) => singleUser.valueOf() === user?._id?.valueOf()
+    );
+    if(foundedUsers.length){   
+
+      const updatedInvities = await Invitation.updateMany(
+        { _id: { $in: invities } },
+        {
+          $set: { lastStatus: { invitiStatus: lastStatus, addedBy: req?.user?._id } },
+          $push: { statuses: { invitiStatus: lastStatus, addedBy: req?.user?._id } },
+        }
+      );
+
+      res.status(200).send({
+        message: "user can delete inviti",
+        deletedInvitis: updatedInvities,
+      });
+    } else {
+      res.status(199).send({
+        message:
+          "user not include in this group. Only member of group can remove invitations from group",
+      });
+    }
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
 export {
   allInvities,
   createInviti,
@@ -227,4 +272,5 @@ export {
   updateInvitiStatus,
   createMultipleInviti,
   deleteMultipleInviti,
+  updateStatusOfMultipleInvities,
 };
