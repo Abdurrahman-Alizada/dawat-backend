@@ -6,6 +6,9 @@ import {
   removeFromGroup,
   addToGroup,
   updateGroup,
+  updateGroupName,
+  updateGroupDescription,
+  updateGroupImageURL
 } from "../controllers/groupControllers.js";
 import protect from "../middleware/authMiddleware.js";
 
@@ -15,6 +18,9 @@ router.route("/").post(protect, accessGroup);
 router.route("/").get(protect, fetchGroups);
 router.route("/group").post(protect, createGroupChat);
 router.route("/rename").put(protect, updateGroup);
+router.route("/:groupId/updateName").put(protect, updateGroupName);
+router.route("/:groupId/updateDescription").put(protect, updateGroupDescription);
+router.route("/:groupId/updateImageURL").put(protect, updateGroupImageURL);
 router.route("/groupremove").put(protect, removeFromGroup);
 router.route("/groupadd").put(protect, addToGroup);
 

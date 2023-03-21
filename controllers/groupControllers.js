@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Chat from "../models/groupModel.js";
 import User from "../models/userModel.js";
-
+import GroupLogs from "../models/GroupLogsModel.js";
 //@description     Create or fetch One to One Chat
 //@route           POST /api/chat/
 //@access          Protected
@@ -109,6 +109,16 @@ const createGroupChat = asyncHandler(async (req, res) => {
       .populate("users", "-password")
       .populate("groupAdmin", "-password");
 
+      // generate logs for creating Group
+      const newLog = {
+        groupId: newGroup?._id,
+        logDescription: `created the group '${req.body.groupName}'`,
+        addedBy: req.user,
+        isSystemGenerated: true,
+        identifier: "group-created",
+      };
+      await GroupLogs.create(newLog);
+      
     res.status(200).json(newGroup);
   } catch (error) {
     res.status(400);
@@ -141,6 +151,120 @@ const updateGroup = asyncHandler(async (req, res) => {
     throw new Error("Chat Not Found");
   } else {
     res.json(updatedChat);
+  }
+});
+
+// @desc    update group name
+// @route   PUT api/group/:groupId/updateName
+// @access  Protected
+const updateGroupName = asyncHandler(async (req, res) => {
+  const { newGroupName, previousGroupName } = req.body;
+  const {groupId} = req.params;
+
+  const updatedGroup = await Chat.findByIdAndUpdate(
+    groupId,
+    {
+      groupName: newGroupName,
+    },
+    {
+      new: true,
+    }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
+
+    // generate logs for updating Group name
+    const newLog = {
+      groupId: groupId,
+      logDescription: `update the group title from '${previousGroupName}' to '${newGroupName}' `,
+      addedBy: req.user,
+      isSystemGenerated: true,
+      identifier: "group-name-update",
+    };
+    await GroupLogs.create(newLog);
+    
+
+  if (!updatedGroup) {
+    res.status(404);
+    throw new Error("Chat Not Found");
+  } else {
+    res.json(updatedGroup);
+  }
+});
+
+// @desc    update group name
+// @route   PUT api/group/:groupId/updateDescription
+// @access  Protected
+const updateGroupDescription = asyncHandler(async (req, res) => {
+  const { groupDescription } = req.body;
+  const {groupId} = req.params;
+
+  const updatedGroup = await Chat.findByIdAndUpdate(
+    groupId,
+    {
+      groupDescription: groupDescription,
+    },
+    {
+      new: true,
+    }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
+
+    // generate logs for updating Group description
+    const newLog = {
+      groupId: groupId,
+      logDescription: `update the group description to '${groupDescription}' `,
+      addedBy: req.user,
+      isSystemGenerated: true,
+      identifier: "group-description-update",
+    };
+    await GroupLogs.create(newLog);
+    
+
+  if (!updatedGroup) {
+    res.status(404);
+    throw new Error("Chat Not Found");
+  } else {
+    res.json(updatedGroup);
+  }
+});
+
+// @desc    update group name
+// @route   PUT api/group/:groupId/updateImageURL
+// @access  Protected
+const updateGroupImageURL = asyncHandler(async (req, res) => {
+  const { imageURL } = req.body;
+  const {groupId} = req.params;
+
+  const updatedGroup = await Chat.findByIdAndUpdate(
+    groupId,
+    {
+      imageURL: imageURL,
+    },
+    {
+      new: true,
+    }
+  )
+    .populate("users", "-password")
+    .populate("groupAdmin", "-password");
+
+    // generate logs for updating Group profile image
+    const newLog = {
+      groupId: groupId,
+      logDescription: `change the profile image`,
+      addedBy: req.user,
+      isSystemGenerated: true,
+      identifier: "group-image-update",
+    };
+    await GroupLogs.create(newLog);
+    
+
+  if (!updatedGroup) {
+    res.status(404);
+    throw new Error("Chat Not Found");
+  } else {
+    res.json(updatedGroup);
   }
 });
 
@@ -177,7 +301,7 @@ const removeFromGroup = asyncHandler(async (req, res) => {
 // @access  Protected
 const addToGroup = asyncHandler(async (req, res) => {
   const { chatId, userId } = req.body;
-
+  console.log(userId)
   // check if the requester is admin
 
   const added = await Chat.findByIdAndUpdate(
@@ -205,6 +329,9 @@ export {
   fetchGroups,
   createGroupChat,
   updateGroup,
+  updateGroupName,
+  updateGroupDescription,
+  updateGroupImageURL,
   addToGroup,
   removeFromGroup,
 };

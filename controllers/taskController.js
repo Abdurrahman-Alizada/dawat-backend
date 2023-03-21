@@ -3,7 +3,7 @@ import User from "../models/userModel.js";
 import Chat from "../models/groupModel.js";
 import Task from "../models/taskModal.js";
 import TaskLogs from "../models/taskLogsModel.js";
-
+import GroupLogs from "../models/GroupLogsModel.js";
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
 //@access          Protected
@@ -89,6 +89,18 @@ const createTask = asyncHandler(async (req, res) => {
     };
     await TaskLogs.create(newLog);
 
+
+    // generate logs for creating task in group section
+    const groupLog = {
+      groupId: groupId,
+      logDescription: `created the task '${taskName}'`,
+      addedBy: task?.addedBy,
+      isSystemGenerated: true,
+      identifier: "task-created",
+    };
+    await GroupLogs.create(groupLog);
+    
+
     res.json(task);
   } catch (error) {
     res.status(400);
@@ -102,13 +114,25 @@ const createTask = asyncHandler(async (req, res) => {
 const deleteTask = asyncHandler(async (req, res) => {
   const { taskId, groupId } = req.body;
 
-  if (!taskId || !groupId) {
-    console.log("Invalid data passed into request");
+  if (!taskId ) {
+    console.log("Invalid data passed into request", taskId, groupId);
     return res.sendStatus(400);
   }
 
   try {
     const task = await Task.findByIdAndDelete(taskId);
+
+    // generate logs for creating task in group section
+    const groupLog = {
+      groupId: groupId,
+      logDescription: `delete the task '${task?.taskName}'`,
+      addedBy: req.user,
+      isSystemGenerated: true,
+      identifier: "task-deleted",
+    };
+    console.log(groupLog)
+    await GroupLogs.create(groupLog);
+
     res.json(task);
   } catch (error) {
     res.status(400);

@@ -12,6 +12,7 @@ import invitationRouter from './router/invitationRouter.js';
 import taskRouter from './router/taskRouter.js';
 import FriendRouter from "./router/FriendshipRouter.js";
 import TaskLogsRouter from "./router/TaskLogsRouter.js";
+import GroupLogs from "./router/groupLogsRouter.js";
 import bodyParser from "body-parser";
 
 dotenv.config();
@@ -47,6 +48,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/account", userRouter);
 app.use("/api/group", groupRouter);
+app.use("/api/group/logs", GroupLogs);
 app.use("/api/group/message", messageRoutes);
 app.use("/api/group/invitations", invitationRouter);
 app.use("/api/group/tasks", taskRouter);
