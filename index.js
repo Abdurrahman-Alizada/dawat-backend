@@ -43,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // api routes
 app.get("/", (req, res) => {
-  res.status(200).send("Hello World from dawat backend");
+  res.status(200).send("Hello World from event planner app backend");
 });
 
 app.use("/api/account", userRouter);

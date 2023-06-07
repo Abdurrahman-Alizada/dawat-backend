@@ -60,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
         token: crypto.randomBytes(32).toString("hex"),
       });
       const url = `${process.env.BASE_URL}/api/account/user/${user._id}/verify/${token.token}`;
-      await sendEmail(user.email, "Please verify your email.", url);
+      await sendEmail(user.email, "Please verify your email for event planner app", url);
       res
         .status(201)
         .send({ message: "An Email sent to your account please verify" });

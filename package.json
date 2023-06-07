@@ -1,6 +1,6 @@
 {
-  "name": "back-end",
-  "version": "1.0.0",
+  "name": "eventplannerapp-back-end",
+  "version": "0.0.1",
   "description": "",
   "type": "module",
   "main": "index.js",
