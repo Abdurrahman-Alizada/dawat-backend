@@ -3,16 +3,16 @@ import Message from "../models/messageModel.js";
 import User from "../models/userModel.js";
 import Chat from "../models/groupModel.js";
 
-
 //@description     Get all Messages
 //@route           GET /api/group/message/:groupId
 //@access          Protected
 const allMessages = asyncHandler(async (req, res) => {
   try {
     let messages = await Message.find({ group: req.params.groupId })
-      .populate("addedBy", "name imageURL").sort({_id:-1}) 
-      // .populate("group")
-    
+      .populate("addedBy", "name imageURL")
+      .sort({ _id: -1 });
+    // .populate("group")
+
     // messages =  await User.populate(messages, {
     //     path: "group.users",
     //     select: "name imageURL",
@@ -41,7 +41,6 @@ const sendMessage = asyncHandler(async (req, res) => {
     group: groupId,
   };
 
-  
   try {
     var message = await Message.create(newMessage);
 
@@ -61,4 +60,39 @@ const sendMessage = asyncHandler(async (req, res) => {
   }
 });
 
-export { allMessages, sendMessage };
+const deleteMessages = asyncHandler(async (req, res) => {
+  const { groupId, userId, messages } = req.body;
+
+  try {
+    // let foundedUsers;
+
+    if (!messages?.length || !groupId || !userId) {
+      console.log("Invalid data passed into request");
+      return res.sendStatus(400);
+    } 
+
+    let i;
+    for (i = 0; i < messages.length; i++) {
+      if(messages[i]?.addedBy?._id == req.user?._id){
+         await Message.findByIdAndDelete(messages[i]._id);
+      }else{
+        await Message.findByIdAndUpdate(
+          messages[i],
+          {
+            $push: { messageDeletedFor: req.user?._id },
+          },
+          {
+            new: true,
+          }
+        );
+      }
+    }
+
+    res.json("message(s) deleted succesfully");
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
+export { allMessages, sendMessage, deleteMessages };
