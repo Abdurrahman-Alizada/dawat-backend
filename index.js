@@ -12,6 +12,8 @@ import invitationRouter from './router/invitationRouter.js';
 import taskRouter from './router/taskRouter.js';
 import FriendRouter from "./router/FriendshipRouter.js";
 import TaskLogsRouter from "./router/TaskLogsRouter.js";
+import GroupLogs from "./router/groupLogsRouter.js";
+import bodyParser from "body-parser";
 
 dotenv.config();
 
@@ -19,6 +21,10 @@ const app = express();
 const server = http.createServer(app)
 
 const port = process.env.PORT || 8000;
+
+// parser 
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 
 // db config
 mongoose.connect(process.env.MONGO_URL, {
@@ -37,11 +43,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // api routes
 app.get("/", (req, res) => {
-  res.status(200).send("Hello World from dawat backend");
+  res.status(200).send("Hello World from event planner app backend");
 });
 
 app.use("/api/account", userRouter);
 app.use("/api/group", groupRouter);
+app.use("/api/group/logs", GroupLogs);
 app.use("/api/group/message", messageRoutes);
 app.use("/api/group/invitations", invitationRouter);
 app.use("/api/group/tasks", taskRouter);

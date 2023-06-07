@@ -1,3 +1,7 @@
+import Group from "../models/groupModel.js";
+import Task from "../models/taskModal.js";
+import Friendship from "../models/FriendshipModel.js";
+
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import Token from "../models/tokenModel.js";
@@ -56,7 +60,7 @@ const registerUser = asyncHandler(async (req, res) => {
         token: crypto.randomBytes(32).toString("hex"),
       });
       const url = `${process.env.BASE_URL}/api/account/user/${user._id}/verify/${token.token}`;
-      await sendEmail(user.email, "Please verify your email.", url);
+      await sendEmail(user.email, "Please verify your email for event planner app", url);
       res
         .status(201)
         .send({ message: "An Email sent to your account please verify" });
@@ -272,6 +276,53 @@ const updateImageURL = asyncHandler(async (req, res) => {
   }
 });
 
+const deleleUserByItSelf = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+
+  try {
+    if(req.params.id.toString() === req.user._id.toString()){
+      // res.status(200).json({message:"matched."})
+     
+      if (user) {
+  
+        const deletedUser = await User.findByIdAndDelete(req.params.id);
+
+        // removing user from group
+          await Group.updateMany(
+          {
+            users: {
+              $in: [req.params.id],
+            },
+          },
+          {
+            $pull: {
+              users: req.params.id,
+            },
+          }
+        );
+  
+        // deleting user friend's record
+        await Friendship.deleteMany({$or: [{requestor: req.params.id},{recipient: req.params.id}]} );
+  
+        // removing user from tasks
+         await Task.updateMany({
+          $pull: { responsibles: { responsible: { $in: [req.params.id] } } },
+        });
+  
+        res.status(200).json({message :"user has been deleted", deletedUser : deletedUser});
+      } else {
+        res.status(404).send("User not found");
+      }
+    }else{
+      res.status(199).json({message:"User can only delete itself."})
+    }
+  
+  } catch (error) {
+    res.status(400).json({message : "something went wrong", error : error.message});
+    throw new Error(error.message);
+  }
+});
+
 export {
   allUsers,
   authUser,
@@ -283,4 +334,5 @@ export {
   registerUser,
   loginUser,
   Verify,
+  deleleUserByItSelf,
 };
