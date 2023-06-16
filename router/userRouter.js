@@ -16,7 +16,8 @@ import {
   deleleUserByItSelf,
   forgotPassword,
   VerifyOTPForPasswordRecovery,
-  resetPassword
+  resetPassword,
+  resendEmailForUserRegistration
 } from "../controllers/userControllers.js";
 
 const userRouter = express.Router();
@@ -76,6 +77,7 @@ userRouter.route("/users/:id").get(currentLoginUser);
 userRouter.route("/users/:id/deleleUserByItSelf").delete(protect,deleleUserByItSelf);
 
 userRouter.route("/user/register").post(registerUser);
+userRouter.route("/user/register/resendEmailForUserRegistration").post(resendEmailForUserRegistration);
 userRouter.route("/user/login").post(loginUser);
 userRouter.route("/user/:id/verify/:token").get( Verify);
 

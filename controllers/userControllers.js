@@ -11,7 +11,7 @@ import crypto from "crypto";
 import {
   sendRecoveryEmail,
   sendVerificationEmail,
-  sendPasswordResetSuccessfullyEmail
+  sendPasswordResetSuccessfullyEmail,
 } from "../utils/sendEmail.js";
 import { generateToken } from "../utils/generateToken.js";
 import otpGenerator from "otp-generator";
@@ -47,7 +47,8 @@ const registerUser = asyncHandler(async (req, res) => {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      res.status(409).send({ message: "User with given email already Exist!" });
+      res.status(409).send({ message: "User with given email already Exist!", verified:userExists.verified });
+      return;
     }
 
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
@@ -78,6 +79,44 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new Error("Something went wrong");
     }
   } catch (errors) {
+    return res.status(200).send({ errors });
+  }
+});
+
+//@description     Resend email for registering new user
+//@route           POST /api/user/register/resendEmailForUserRegistration
+//@access          Public
+const resendEmailForUserRegistration = asyncHandler(async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).send({ message: "Invalid email" });
+    }
+
+    const user = await User.findOne({ email: email });
+    const isToken = await Token.findOne({
+      userId: user._id,
+    });
+    if (isToken) {
+      await isToken.remove();
+    } 
+      const token = await Token.create({
+        userId: user._id,
+        token: crypto.randomBytes(32).toString("hex"),
+      });
+      const url = `${process.env.BASE_URL}/api/account/user/${user._id}/verify/${token.token}`;
+      await sendVerificationEmail(
+        user.email,
+        "Please verify your email for event planner app",
+        url
+      );
+      res
+        .status(201)
+        .send({ message: "An Email sent to your account please verify" });
+    
+  } catch (errors) {
+    console.log(errors);
     return res.status(200).send({ errors });
   }
 });
@@ -151,7 +190,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) return res.status(400).send({ message: "Email not found" });
-    
+
     const OTP = otpGenerator.generate(5, {
       lowerCaseAlphabets: false,
       upperCaseAlphabets: false,
@@ -160,16 +199,16 @@ const forgotPassword = asyncHandler(async (req, res) => {
     const OTPresponse = await OTPModel.create({
       userId: user._id,
       OTP: OTP,
-      attempts:0
+      attempts: 0,
     });
-    
-    if(OTPresponse._id){
+
+    if (OTPresponse._id) {
       sendRecoveryEmail({ recipient_email: req.body.email, OTP: OTP });
     }
 
     res.status(200).send({ message: `OTP has been sent to ${user?.email}` });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).send({ message: "Internal Server Error" });
   }
 });
@@ -179,17 +218,25 @@ const forgotPassword = asyncHandler(async (req, res) => {
 //@access          Public
 const VerifyOTPForPasswordRecovery = asyncHandler(async (req, res) => {
   try {
-    console.log(req.body)
-    const user = await User.findOne({email: req.body.email });
-    if (!user) return res.status(400).send({ message: "User not found. Verification must be done by email owner itself" });
+    console.log(req.body);
+    const user = await User.findOne({ email: req.body.email });
+    if (!user)
+      return res.status(400).send({
+        message:
+          "User not found. Verification must be done by email owner itself",
+      });
     const OTP = await OTPModel.findOne({
       userId: user._id,
       OTP: req.body.OTP,
     });
-    if (!OTP) return res.status(400).send({ message: "OTP not found. It may be incorrect or expired, please try again" });
+    if (!OTP)
+      return res.status(400).send({
+        message:
+          "OTP not found. It may be incorrect or expired, please try again",
+      });
     await OTP.remove();
 
-    res.status(200).send({ message: "OTP verified successfully", user:user });
+    res.status(200).send({ message: "OTP verified successfully", user: user });
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }
@@ -330,13 +377,16 @@ const resetPassword = asyncHandler(async (req, res) => {
       { password: hashedPassword },
       { new: true }
     );
-    if(updatedUser._id){
-      sendPasswordResetSuccessfullyEmail({recipient_email:updatedUser.email})
-      return res.status(200).send({message : "Password has been updated", user:updatedUser});
-    }else{
+    if (updatedUser._id) {
+      sendPasswordResetSuccessfullyEmail({
+        recipient_email: updatedUser.email,
+      });
+      return res
+        .status(200)
+        .send({ message: "Password has been updated", user: updatedUser });
+    } else {
       return res.status(400).send("Something went wrong");
     }
-    
   } catch (error) {
     console.log(error);
     return res.status(500).send("Something went wrong. Try again");
@@ -432,5 +482,6 @@ export {
   deleleUserByItSelf,
   forgotPassword,
   VerifyOTPForPasswordRecovery,
-  resetPassword
+  resetPassword,
+  resendEmailForUserRegistration,
 };

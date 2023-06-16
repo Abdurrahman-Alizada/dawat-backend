@@ -50,7 +50,7 @@ export function sendVerificationEmail (email, subject, text)  {
           </div>
         </body>
       </html>
-            `,
+     `,
     };
 
     transporter.sendMail(mail_configs, function (error, info) {
