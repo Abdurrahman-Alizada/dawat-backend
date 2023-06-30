@@ -6,6 +6,7 @@ const messageSchema = mongoose.Schema(
     content: { type: String, trim: true },
     group: { type: mongoose.Schema.Types.ObjectId, ref: "group" },
     readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+    messageDeletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }], 
   },
   { timestamps: true }
 );
@@ -13,3 +14,4 @@ const messageSchema = mongoose.Schema(
 const Message = mongoose.model("message", messageSchema);
 export default Message;
 
+// message deletion

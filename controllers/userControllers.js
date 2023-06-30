@@ -5,11 +5,16 @@ import Friendship from "../models/FriendshipModel.js";
 import asyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
 import Token from "../models/tokenModel.js";
+import OTPModel from "../models/OTPModel.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import sendEmail from "../utils/sendEmail.js";
+import {
+  sendRecoveryEmail,
+  sendVerificationEmail,
+  sendPasswordResetSuccessfullyEmail,
+} from "../utils/sendEmail.js";
 import { generateToken } from "../utils/generateToken.js";
-
+import otpGenerator from "otp-generator";
 //@description     Get or Search all users
 //@route           GET /api/user?search=
 //@access          Public
@@ -42,7 +47,8 @@ const registerUser = asyncHandler(async (req, res) => {
     const userExists = await User.findOne({ email });
 
     if (userExists) {
-      res.status(409).send({ message: "User with given email already Exist!" });
+      res.status(409).send({ message: "User with given email already Exist!", verified:userExists.verified });
+      return;
     }
 
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
@@ -60,7 +66,11 @@ const registerUser = asyncHandler(async (req, res) => {
         token: crypto.randomBytes(32).toString("hex"),
       });
       const url = `${process.env.BASE_URL}/api/account/user/${user._id}/verify/${token.token}`;
-      await sendEmail(user.email, "Please verify your email for event planner app", url);
+      await sendVerificationEmail(
+        user.email,
+        "Please verify your email for event planner app",
+        url
+      );
       res
         .status(201)
         .send({ message: "An Email sent to your account please verify" });
@@ -69,6 +79,44 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new Error("Something went wrong");
     }
   } catch (errors) {
+    return res.status(200).send({ errors });
+  }
+});
+
+//@description     Resend email for registering new user
+//@route           POST /api/user/register/resendEmailForUserRegistration
+//@access          Public
+const resendEmailForUserRegistration = asyncHandler(async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).send({ message: "Invalid email" });
+    }
+
+    const user = await User.findOne({ email: email });
+    const isToken = await Token.findOne({
+      userId: user._id,
+    });
+    if (isToken) {
+      await isToken.remove();
+    } 
+      const token = await Token.create({
+        userId: user._id,
+        token: crypto.randomBytes(32).toString("hex"),
+      });
+      const url = `${process.env.BASE_URL}/api/account/user/${user._id}/verify/${token.token}`;
+      await sendVerificationEmail(
+        user.email,
+        "Please verify your email for event planner app",
+        url
+      );
+      res
+        .status(201)
+        .send({ message: "An Email sent to your account please verify" });
+    
+  } catch (errors) {
+    console.log(errors);
     return res.status(200).send({ errors });
   }
 });
@@ -130,6 +178,65 @@ const Verify = asyncHandler(async (req, res) => {
     await token.remove();
 
     res.status(200).send({ message: "Email verified successfully" });
+  } catch (error) {
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+//@description     check user if the user forgot password and then send email
+//@route           POST /api/account/user/forgotPassword
+//@access          Public
+const forgotPassword = asyncHandler(async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(400).send({ message: "Email not found" });
+
+    const OTP = otpGenerator.generate(5, {
+      lowerCaseAlphabets: false,
+      upperCaseAlphabets: false,
+      specialChars: false,
+    });
+    const OTPresponse = await OTPModel.create({
+      userId: user._id,
+      OTP: OTP,
+      attempts: 0,
+    });
+
+    if (OTPresponse._id) {
+      sendRecoveryEmail({ recipient_email: req.body.email, OTP: OTP });
+    }
+
+    res.status(200).send({ message: `OTP has been sent to ${user?.email}` });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: "Internal Server Error" });
+  }
+});
+
+//@description     Verify the token for email varification
+//@route           POST /api/account/user/:id/verify/:token
+//@access          Public
+const VerifyOTPForPasswordRecovery = asyncHandler(async (req, res) => {
+  try {
+    console.log(req.body);
+    const user = await User.findOne({ email: req.body.email });
+    if (!user)
+      return res.status(400).send({
+        message:
+          "User not found. Verification must be done by email owner itself",
+      });
+    const OTP = await OTPModel.findOne({
+      userId: user._id,
+      OTP: req.body.OTP,
+    });
+    if (!OTP)
+      return res.status(400).send({
+        message:
+          "OTP not found. It may be incorrect or expired, please try again",
+      });
+    await OTP.remove();
+
+    res.status(200).send({ message: "OTP verified successfully", user: user });
   } catch (error) {
     res.status(500).send({ message: "Internal Server Error" });
   }
@@ -221,7 +328,7 @@ const updateEmail = asyncHandler(async (req, res) => {
   }
 });
 
-//@description     update the password of user
+//@description     update the password of user - when user know the old password
 //@route           get /api/account/users/:id/updatePassword
 //@access          Protected
 const updatePassword = asyncHandler(async (req, res) => {
@@ -246,6 +353,40 @@ const updatePassword = asyncHandler(async (req, res) => {
       { new: true }
     );
     res.send(updatedUser);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Something went wrong. Try again");
+  }
+});
+
+//@description     update the password of user - when user don't now the old password
+//@route           get /api/account/user/resetPassword
+//@access          Protected
+const resetPassword = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+  try {
+    const user = await User.findOne({ _id: id });
+    if (!user) {
+      return res.status(400).send("User not found");
+    }
+    // hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { password: hashedPassword },
+      { new: true }
+    );
+    if (updatedUser._id) {
+      sendPasswordResetSuccessfullyEmail({
+        recipient_email: updatedUser.email,
+      });
+      return res
+        .status(200)
+        .send({ message: "Password has been updated", user: updatedUser });
+    } else {
+      return res.status(400).send("Something went wrong");
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).send("Something went wrong. Try again");
@@ -280,15 +421,14 @@ const deleleUserByItSelf = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
   try {
-    if(req.params.id.toString() === req.user._id.toString()){
+    if (req.params.id.toString() === req.user._id.toString()) {
       // res.status(200).json({message:"matched."})
-     
+
       if (user) {
-  
         const deletedUser = await User.findByIdAndDelete(req.params.id);
 
         // removing user from group
-          await Group.updateMany(
+        await Group.updateMany(
           {
             users: {
               $in: [req.params.id],
@@ -300,25 +440,30 @@ const deleleUserByItSelf = asyncHandler(async (req, res) => {
             },
           }
         );
-  
+
         // deleting user friend's record
-        await Friendship.deleteMany({$or: [{requestor: req.params.id},{recipient: req.params.id}]} );
-  
+        await Friendship.deleteMany({
+          $or: [{ requestor: req.params.id }, { recipient: req.params.id }],
+        });
+
         // removing user from tasks
-         await Task.updateMany({
+        await Task.updateMany({
           $pull: { responsibles: { responsible: { $in: [req.params.id] } } },
         });
-  
-        res.status(200).json({message :"user has been deleted", deletedUser : deletedUser});
+
+        res
+          .status(200)
+          .json({ message: "user has been deleted", deletedUser: deletedUser });
       } else {
         res.status(404).send("User not found");
       }
-    }else{
-      res.status(199).json({message:"User can only delete itself."})
+    } else {
+      res.status(199).json({ message: "User can only delete itself." });
     }
-  
   } catch (error) {
-    res.status(400).json({message : "something went wrong", error : error.message});
+    res
+      .status(400)
+      .json({ message: "something went wrong", error: error.message });
     throw new Error(error.message);
   }
 });
@@ -335,4 +480,8 @@ export {
   loginUser,
   Verify,
   deleleUserByItSelf,
+  forgotPassword,
+  VerifyOTPForPasswordRecovery,
+  resetPassword,
+  resendEmailForUserRegistration,
 };

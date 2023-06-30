@@ -13,7 +13,11 @@ import {
   Verify,
   registerUser,
   loginUser,
-  deleleUserByItSelf
+  deleleUserByItSelf,
+  forgotPassword,
+  VerifyOTPForPasswordRecovery,
+  resetPassword,
+  resendEmailForUserRegistration
 } from "../controllers/userControllers.js";
 
 const userRouter = express.Router();
@@ -73,6 +77,7 @@ userRouter.route("/users/:id").get(currentLoginUser);
 userRouter.route("/users/:id/deleleUserByItSelf").delete(protect,deleleUserByItSelf);
 
 userRouter.route("/user/register").post(registerUser);
+userRouter.route("/user/register/resendEmailForUserRegistration").post(resendEmailForUserRegistration);
 userRouter.route("/user/login").post(loginUser);
 userRouter.route("/user/:id/verify/:token").get( Verify);
 
@@ -80,5 +85,9 @@ userRouter.route("/users/:id/updateName").patch(protect, updateName);
 userRouter.route("/users/:id/updateEmail").patch(protect, updateEmail);
 userRouter.route("/users/:id/updatePassword").patch(protect, updatePassword);
 userRouter.route("/users/:id/updateImageURL").patch(protect, updateImageURL);
+
+userRouter.route("/user/forgotPassword").post(forgotPassword)
+userRouter.route("/user/VerifyOTPForPasswordRecovery").post(VerifyOTPForPasswordRecovery)
+userRouter.route("/user/:id/resetPassword").patch(resetPassword);
 
 export default userRouter;

@@ -3,7 +3,8 @@ import Message from "../models/messageModel.js";
 import User from "../models/userModel.js";
 import Chat from "../models/groupModel.js";
 import Invitation from "../models/invitaionModel.js";
-//@description     Get all Messages
+import mongoose from "mongoose";
+//@description     Get all invities
 //@route           GET /api/Message/:chatId
 //@access          Protected
 const allInvities = asyncHandler(async (req, res) => {
@@ -92,7 +93,9 @@ const createMultipleInviti = asyncHandler(async (req, res) => {
         invitiImageURL: inviti.invitiImageURL ? inviti.invitiImageURL : "",
         addedBy: req.user._id,
         lastStatus: { invitiStatus: inviti.lastStatus, addedBy: req.user._id },
-        statuses: [{ invitiStatus: inviti.lastStatus, addedBy: req?.user?._id }],
+        statuses: [
+          { invitiStatus: inviti.lastStatus, addedBy: req?.user?._id },
+        ],
         group: groupId,
       };
       return newInviti;
@@ -238,13 +241,16 @@ const updateStatusOfMultipleInvities = asyncHandler(async (req, res) => {
     const foundedUsers = group?.users?.filter(
       (singleUser) => singleUser.valueOf() === user?._id?.valueOf()
     );
-    if(foundedUsers.length){   
-
+    if (foundedUsers.length) {
       const updatedInvities = await Invitation.updateMany(
         { _id: { $in: invities } },
         {
-          $set: { lastStatus: { invitiStatus: lastStatus, addedBy: req?.user?._id } },
-          $push: { statuses: { invitiStatus: lastStatus, addedBy: req?.user?._id } },
+          $set: {
+            lastStatus: { invitiStatus: lastStatus, addedBy: req?.user?._id },
+          },
+          $push: {
+            statuses: { invitiStatus: lastStatus, addedBy: req?.user?._id },
+          },
         }
       );
 
@@ -264,6 +270,75 @@ const updateStatusOfMultipleInvities = asyncHandler(async (req, res) => {
   }
 });
 
+//@description     Get summary of invitions list
+// @route          PUT api/group/invitations/:groupId/invitiesSummary
+//@access          Protected
+const invitiesSummary = asyncHandler(async (req, res) => {
+  try {
+    const invities = await Invitation.aggregate([
+      { $match: { group: mongoose.Types.ObjectId(req?.params?.groupId) } },
+      {
+        $project: {
+          lastStatus: "$lastStatus",
+        },
+      },
+      {
+        $group: {
+          _id: "$lastStatus.k",
+          invited: {
+            $sum: {
+              $cond: {
+                if: {
+                  $eq: ["$lastStatus.invitiStatus", "invited"],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+          pending: {
+            $sum: {
+              $cond: {
+                if: {
+                  $eq: ["$lastStatus.invitiStatus", "pending"],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+          rejected: {
+            $sum: {
+              $cond: {
+                if: {
+                  $eq: ["$lastStatus.invitiStatus", "rejected"],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+          other: {
+            $sum: {
+              $cond: {
+                if: {
+                  $eq: ["$lastStatus.invitiStatus", "other"],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+        },
+      },
+    ]);
+    res.json(invities[0]);
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
+
 export {
   allInvities,
   createInviti,
@@ -273,4 +348,5 @@ export {
   createMultipleInviti,
   deleteMultipleInviti,
   updateStatusOfMultipleInvities,
+  invitiesSummary,
 };

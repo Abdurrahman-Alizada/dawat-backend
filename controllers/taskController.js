@@ -4,6 +4,7 @@ import Chat from "../models/groupModel.js";
 import Task from "../models/taskModal.js";
 import TaskLogs from "../models/taskLogsModel.js";
 import GroupLogs from "../models/GroupLogsModel.js";
+import mongoose from "mongoose";
 //@description     Get all Messages
 //@route           GET /api/Message/:chatId
 //@access          Protected
@@ -459,6 +460,53 @@ const updateResponsibles = asyncHandler(async (req, res) => {
 
 });
 
+//@description     Get summary of tasks list
+// @route          PUT api/group/tasks/:groupId/tasksSummary
+//@access          Protected
+const tasksSummary = asyncHandler(async (req, res) => {
+  try {
+   const tasks = await Task.aggregate([
+      { $match: { group: mongoose.Types.ObjectId(req?.params?.groupId) } },
+      {
+        $project: {
+          isCompleted: "$isCompleted",
+        },
+      },
+      {
+        $group: {
+          _id: "$isCompleted.k",
+          isCompleted: {
+            $sum: {
+              $cond: {
+                if: {
+                  $eq: ["$isCompleted", true],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          },
+          notCompleted: {
+            $sum: {
+              $cond: {
+                if: {
+                  $eq: ["$isCompleted", false],
+                },
+                then: 1,
+                else: 0,
+              },
+            },
+          }
+        },
+      },
+    ]);
+    console.log(tasks)
+    res.json(tasks[0]);
+  } catch (error) {
+    res.status(400);
+    throw new Error(error.message);
+  }
+});
 export {
   allTasks,
   createTask,
@@ -471,4 +519,5 @@ export {
   updateStartingDates,
   updatePriority,
   updateResponsibles,
+  tasksSummary
 };
