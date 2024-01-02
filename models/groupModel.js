@@ -12,8 +12,11 @@ const groupSchema = new mongoose.Schema(
     users: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
     latestMessage: { type: mongoose.Schema.Types.ObjectId, ref: "message",},
     latestInvitions: {type: mongoose.Schema.Types.ObjectId, ref: "invitation",},
-    groupAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
+    groupAdmins: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
+    time: { type: Date, default: Date.now },
   },
+  
  {
     timestamps: true,
   }

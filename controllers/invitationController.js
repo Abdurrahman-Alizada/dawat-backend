@@ -52,14 +52,6 @@ const createInviti = asyncHandler(async (req, res) => {
 
   try {
     let inviti = await Invitation.create(newInviti);
-
-    // inviti = await inviti.populate("sender", "name pic");
-    inviti = await inviti.populate("group");
-    inviti = await User.populate(inviti, {
-      path: "group.users",
-      select: "name pic email",
-    });
-
     await Invitation.findByIdAndUpdate(
       inviti._id,
       {
@@ -92,9 +84,9 @@ const createMultipleInviti = asyncHandler(async (req, res) => {
         invitiDescription: inviti.invitiDescription,
         invitiImageURL: inviti.invitiImageURL ? inviti.invitiImageURL : "",
         addedBy: req.user._id,
-        lastStatus: { invitiStatus: inviti.lastStatus, addedBy: req.user._id },
+        lastStatus: { invitiStatus: inviti.lastStatus.invitiStatus, addedBy: req.user._id },
         statuses: [
-          { invitiStatus: inviti.lastStatus, addedBy: req?.user?._id },
+          { invitiStatus: inviti.lastStatus.invitiStatus, addedBy: req?.user?._id },
         ],
         group: groupId,
       };
