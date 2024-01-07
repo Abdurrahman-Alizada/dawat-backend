@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from 'http'
-import WebSocket, {WebSocketServer} from 'ws';
 import {Server} from "socket.io";
 import userRouter from "./router/userRouter.js";
 import groupRouter from './router/groupRouter.js';
@@ -43,7 +42,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // api routes
 app.get("/", (req, res) => {
-  res.status(200).send("Hello World from event planner app backend");
+  res.status(200).send("Hello World from event planner app backend local");
 });
 
 app.use("/api/account", userRouter);

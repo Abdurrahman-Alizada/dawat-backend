@@ -5,7 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "node index.js",
+    "dev":"nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -29,7 +30,6 @@
     "nodemon": "^2.0.15",
     "otp-generator": "^4.0.1",
     "path": "^0.12.7",
-    "socket.io": "^4.5.1",
-    "ws": "^8.2.2"
+    "socket.io": "^4.5.1"
   }
 }

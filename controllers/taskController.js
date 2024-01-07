@@ -55,7 +55,6 @@ const createTask = asyncHandler(async (req, res) => {
       addedBy: req.user._id,
     });
   }
-
   var newTask = {
     taskName: taskName,
     taskDescription: taskDescription,
