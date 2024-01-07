@@ -84,9 +84,17 @@ const createMultipleInviti = asyncHandler(async (req, res) => {
         invitiDescription: inviti.invitiDescription,
         invitiImageURL: inviti.invitiImageURL ? inviti.invitiImageURL : "",
         addedBy: req.user._id,
-        lastStatus: { invitiStatus: inviti.lastStatus.invitiStatus, addedBy: req.user._id },
+        lastStatus: {
+          invitiStatus: inviti.lastStatus.invitiStatus
+            ? inviti.lastStatus.invitiStatus
+            : inviti.lastStatus,
+          addedBy: req.user._id,
+        },
         statuses: [
-          { invitiStatus: inviti.lastStatus.invitiStatus, addedBy: req?.user?._id },
+          {
+            invitiStatus: inviti.lastStatus.invitiStatus,
+            addedBy: req?.user?._id,
+          },
         ],
         group: groupId,
       };
