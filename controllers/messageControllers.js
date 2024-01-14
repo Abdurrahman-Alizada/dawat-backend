@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Message from "../models/messageModel.js";
 import User from "../models/userModel.js";
-import Chat from "../models/groupModel.js";
+import Group from "../models/groupModel.js";
 
 //@description     Get all Messages
 //@route           GET /api/group/message/:groupId
@@ -50,8 +50,6 @@ const sendMessage = asyncHandler(async (req, res) => {
       path: "group.users",
       select: "name email imageURL",
     });
-
-    await Chat.findByIdAndUpdate(req.body.chatId, { latestMessage: message });
 
     res.json(message);
   } catch (error) {

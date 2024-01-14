@@ -61,7 +61,6 @@ const createInviti = asyncHandler(async (req, res) => {
         new: true,
       }
     );
-    await Chat.findByIdAndUpdate(req.body.groupId, { latestInvitions: inviti });
 
     res.json(inviti);
   } catch (error) {
