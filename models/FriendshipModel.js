@@ -11,6 +11,8 @@ const friendsSchema = new mongoose.Schema(
         1, //'requested - current login user request to connect',
         2, //'pending -  other request to current login user to connect',
         3, //'friends - one requested and another accepted'
+        4, //'suggestion deleted - one has been appear in suggestion screen and another delete suggestion'
+        5, //'blocked 
       ],
     },
   },
