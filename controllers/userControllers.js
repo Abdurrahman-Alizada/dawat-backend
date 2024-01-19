@@ -292,7 +292,6 @@ const updateName = asyncHandler(async (req, res) => {
       { name: name },
       { new: true }
     );
-    console.log("user is : ", user);
     if (!user) {
       res.status(404).send({ message: "User not found" });
     } else {
